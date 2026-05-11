@@ -1,5 +1,6 @@
 import { useData } from '../context/DataContext';
 import StatusBadge from './StatusBadge';
+import { Inbox } from 'lucide-react';
 
 export default function InboxView({ onEntryClick }) {
   const { entries } = useData();
@@ -7,34 +8,47 @@ export default function InboxView({ onEntryClick }) {
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between">
-        <h3 className="text-sm font-medium text-gray-800">Form inbox</h3>
-        <span className="text-xs text-gray-400">{submitted.length} submitted</span>
+      {/* Header */}
+      <div className="mb-5 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="rounded-lg bg-gradient-to-br from-indigo-500 to-violet-500 p-1.5">
+            <Inbox size={16} className="text-white" />
+          </div>
+          <h3 className="text-sm font-semibold text-slate-800">Form inbox</h3>
+        </div>
+        <span className="rounded-full bg-white/60 backdrop-blur px-3 py-1 text-xs font-medium text-slate-500 border border-white/30">
+          {submitted.length} submitted
+        </span>
       </div>
-      <div className="overflow-hidden rounded-lg border bg-white">
+
+      {/* Table */}
+      <div className="glass-card overflow-hidden rounded-2xl">
         <table className="w-full">
-          <thead className="bg-gray-50 text-[11px] font-medium uppercase tracking-wider text-gray-500">
+          <thead className="bg-white/30 text-[11px] font-semibold uppercase text-slate-500">
             <tr>
-              <th className="px-4 py-2.5 text-left">Form</th>
-              <th className="px-4 py-2.5 text-left">Location</th>
-              <th className="px-4 py-2.5 text-left">Submitted</th>
-              <th className="px-4 py-2.5 text-left">Status</th>
-              <th className="px-4 py-2.5" />
+              <th className="px-5 py-3 text-left">Form</th>
+              <th className="px-5 py-3 text-left">Location</th>
+              <th className="px-5 py-3 text-left">Submitted</th>
+              <th className="px-5 py-3 text-left">Status</th>
+              <th className="px-5 py-3" />
             </tr>
           </thead>
           <tbody>
             {submitted.map((e) => (
-              <tr key={e.id} className="border-t border-gray-100 hover:bg-gray-50">
-                <td className="px-4 py-2.5 text-sm text-gray-800">{e.indicator}</td>
-                <td className="px-4 py-2.5 text-sm text-gray-500">{e.location}</td>
-                <td className="px-4 py-2.5 text-sm text-gray-500">{e.date}</td>
-                <td className="px-4 py-2.5">
+              <tr
+                key={e.id}
+                className="border-t border-white/20 hover:bg-white/40 transition cursor-pointer"
+              >
+                <td className="px-5 py-3 text-sm font-medium text-slate-800">{e.indicator}</td>
+                <td className="px-5 py-3 text-sm text-slate-600">{e.location}</td>
+                <td className="px-5 py-3 text-sm text-slate-600">{e.date}</td>
+                <td className="px-5 py-3">
                   <StatusBadge status={e.status} />
                 </td>
-                <td className="px-4 py-2.5 text-right">
+                <td className="px-5 py-3 text-right">
                   <button
                     onClick={() => onEntryClick?.(e)}
-                    className="rounded border px-2.5 py-1 text-xs text-gray-600 hover:bg-gray-100"
+                    className="rounded-lg border border-slate-200 bg-white/60 backdrop-blur px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-white/80 hover:border-slate-300 transition"
                   >
                     View
                   </button>
@@ -43,8 +57,9 @@ export default function InboxView({ onEntryClick }) {
             ))}
             {submitted.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-4 py-6 text-center text-sm text-gray-400">
-                  No submitted forms yet.
+                <td colSpan={5} className="px-5 py-10 text-center">
+                  <p className="text-sm text-slate-400">No submitted forms yet.</p>
+                  <p className="text-xs text-slate-300 mt-1">Completed entries will appear here.</p>
                 </td>
               </tr>
             )}
