@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useData } from '../context/DataContext';
 import CommentsView from './CommentsView';
+import { Users, ShieldCheck, Heart, FileCheck } from 'lucide-react';
 
 const statusBadge = (status) => {
   const map = {
@@ -9,8 +10,14 @@ const statusBadge = (status) => {
     inprogress: 'bg-blue-100 text-blue-800',
   };
   return (
-    <span className={`inline-block rounded-full px-2.5 py-0.5 text-[11px] font-medium ${map[status] || 'bg-gray-100 text-gray-600'}`}>
-      {status === 'inprogress' ? 'In progress' : status.charAt(0).toUpperCase() + status.slice(1)}
+    <span
+      className={`inline-block rounded-full px-2.5 py-0.5 text-[11px] font-medium ${
+        map[status] || 'bg-gray-100 text-gray-600'
+      }`}
+    >
+      {status === 'inprogress'
+        ? 'In progress'
+        : status.charAt(0).toUpperCase() + status.slice(1)}
     </span>
   );
 };
@@ -21,25 +28,35 @@ export default function CaptureView({ onNewEntry, onEntryClick }) {
 
   // Stats
   const stats = {
-    familyPreservation: entries.filter(e => e.indicator.includes('Family Preservation')).length,
-    childAbuse: entries.filter(e => e.indicator.includes('Child Abuse')).length,
-    fosterCare: entries.filter(e => e.indicator.includes('foster care')).length,
+    familyPreservation: entries.filter((e) =>
+      e.indicator.includes('Family Preservation')
+    ).length,
+    childAbuse: entries.filter((e) => e.indicator.includes('Child Abuse')).length,
+    fosterCare: entries.filter((e) => e.indicator.includes('foster care')).length,
     totalForms: entries.length,
   };
 
   const filteredEntries = () => {
     if (activeTab === 'all') return entries;
-    if (activeTab === 'pending') return entries.filter(e => e.status === 'pending');
-    if (activeTab === 'completed') return entries.filter(e => e.status === 'captured');
-    if (activeTab === 'comments') return entries.filter(e => e.comments && e.comments.length > 0);
+    if (activeTab === 'pending') return entries.filter((e) => e.status === 'pending');
+    if (activeTab === 'completed') return entries.filter((e) => e.status === 'captured');
+    if (activeTab === 'comments')
+      return entries.filter((e) => e.comments && e.comments.length > 0);
     return entries;
   };
+
+  const statCards = [
+    { label: 'Family Preservation', value: stats.familyPreservation, sub: 'April 2026', icon: Users },
+    { label: 'Child Abuse Cases', value: stats.childAbuse, sub: 'Reported this month', icon: ShieldCheck },
+    { label: 'Foster Care Orders', value: stats.fosterCare, sub: 'Valid & active', icon: Heart },
+    { label: 'Forms Captured', value: stats.totalForms, sub: 'Pixley Ka Seme', icon: FileCheck },
+  ];
 
   return (
     <div>
       {/* Tab Bar */}
       <div className="mb-5 flex border-b border-gray-200">
-        {['all', 'pending', 'completed', 'comments'].map(tab => (
+        {['all', 'pending', 'completed', 'comments'].map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -49,45 +66,25 @@ export default function CaptureView({ onNewEntry, onEntryClick }) {
                 : 'text-gray-500 hover:text-gray-700'
             }`}
           >
-            {tab === 'all' ? 'All Forms' : tab.charAt(0).toUpperCase() + tab.slice(1)}
+            {tab === 'all'
+              ? 'All Forms'
+              : tab.charAt(0).toUpperCase() + tab.slice(1)}
           </button>
         ))}
       </div>
 
       {/* Stats Grid */}
       <div className="mb-6 grid grid-cols-4 gap-3">
-        <div className="rounded-lg border border-gray-200 bg-white p-4">
-          <div className="flex items-start justify-between">
-            <p className="text-xs text-gray-500">Family Preservation</p>
-            <span className="text-lg text-gray-400">👥</span>
+        {statCards.map(({ label, value, sub, icon: Icon }) => (
+          <div key={label} className="rounded-lg border border-gray-200 bg-white p-4">
+            <div className="flex items-start justify-between">
+              <p className="text-xs text-gray-500">{label}</p>
+              <Icon size={18} className="text-gray-400" />
+            </div>
+            <p className="mt-1.5 text-2xl font-medium text-gray-800">{value}</p>
+            <p className="mt-1 text-[11px] text-gray-400">{sub}</p>
           </div>
-          <p className="mt-1.5 text-2xl font-medium text-gray-800">{stats.familyPreservation}</p>
-          <p className="mt-1 text-[11px] text-gray-400">April 2026</p>
-        </div>
-        <div className="rounded-lg border border-gray-200 bg-white p-4">
-          <div className="flex items-start justify-between">
-            <p className="text-xs text-gray-500">Child Abuse Cases</p>
-            <span className="text-lg text-gray-400">🛡️</span>
-          </div>
-          <p className="mt-1.5 text-2xl font-medium text-gray-800">{stats.childAbuse}</p>
-          <p className="mt-1 text-[11px] text-gray-400">Reported this month</p>
-        </div>
-        <div className="rounded-lg border border-gray-200 bg-white p-4">
-          <div className="flex items-start justify-between">
-            <p className="text-xs text-gray-500">Foster Care Orders</p>
-            <span className="text-lg text-gray-400">❤️</span>
-          </div>
-          <p className="mt-1.5 text-2xl font-medium text-gray-800">{stats.fosterCare}</p>
-          <p className="mt-1 text-[11px] text-gray-400">Valid & active</p>
-        </div>
-        <div className="rounded-lg border border-gray-200 bg-white p-4">
-          <div className="flex items-start justify-between">
-            <p className="text-xs text-gray-500">Forms Captured</p>
-            <span className="text-lg text-gray-400">✅</span>
-          </div>
-          <p className="mt-1.5 text-2xl font-medium text-gray-800">{stats.totalForms}</p>
-          <p className="mt-1 text-[11px] text-gray-400">Pixley Ka Seme</p>
-        </div>
+        ))}
       </div>
 
       {/* Table or Comments View */}
@@ -113,7 +110,11 @@ export default function CaptureView({ onNewEntry, onEntryClick }) {
               </thead>
               <tbody>
                 {filteredEntries().map((entry) => (
-                  <tr key={entry.id} className="border-t border-gray-100 hover:bg-gray-50 cursor-pointer" onClick={() => onEntryClick(entry)}>
+                  <tr
+                    key={entry.id}
+                    className="cursor-pointer border-t border-gray-100 hover:bg-gray-50"
+                    onClick={() => onEntryClick(entry)}
+                  >
                     <td className="px-4 py-2.5 text-xs text-gray-500">{entry.date}</td>
                     <td className="px-4 py-2.5 text-sm text-gray-800">{entry.indicator}</td>
                     <td className="px-4 py-2.5 text-sm">{entry.addedBy}</td>
@@ -124,7 +125,9 @@ export default function CaptureView({ onNewEntry, onEntryClick }) {
                 ))}
                 {filteredEntries().length === 0 && (
                   <tr>
-                    <td colSpan={6} className="px-4 py-6 text-center text-sm text-gray-400">No entries found.</td>
+                    <td colSpan={6} className="px-4 py-6 text-center text-sm text-gray-400">
+                      No entries found.
+                    </td>
                   </tr>
                 )}
               </tbody>
