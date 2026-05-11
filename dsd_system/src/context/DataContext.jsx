@@ -128,6 +128,15 @@ export function DataProvider({ children }) {
 
   const [role, setRole] = useState('officer'); // 'officer' | 'supervisor'
 
+  // Loading state – simulates initial data fetch
+  const [loading, setLoading] = useState(true);
+
+  // Simulate data fetching delay (800ms)
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 800);
+    return () => clearTimeout(timer);
+  }, []);
+
   // Filter state for search / filters
   const [filter, setFilter] = useState({
     indicator: '',
@@ -215,6 +224,7 @@ export function DataProvider({ children }) {
         filter,
         setFilter,
         clearFilter,
+        loading,                // ← exposed
         addEntry,
         updateEntry,
         addComment,
