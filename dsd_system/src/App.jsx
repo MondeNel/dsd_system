@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';   // add useEffect
 import Sidebar from './components/Sidebar';
 import Topbar from './components/Topbar';
 import CaptureView from './components/CaptureView';
@@ -45,6 +45,13 @@ function AppInner() {
     else setEditingEntry(null);
   };
 
+  // Clear global filter when dashboard is shown
+  useEffect(() => {
+    if (screen === 'dashboard') {
+      clearFilter();
+    }
+  }, [screen, clearFilter]);
+
   const handleModalConfirm = () => {
     if (pendingNav) doNavigate(pendingNav.id, pendingNav.entry);
   };
@@ -57,7 +64,6 @@ function AppInner() {
     setFormDirty(false);
   };
 
-  // Quick filter from dashboard cards (status)
   const handleQuickFilter = (status) => {
     clearFilter();
     if (status && status !== 'all') {
@@ -66,7 +72,6 @@ function AppInner() {
     setScreen('capture');
   };
 
-  // Chart filter: accepts any filter fields (e.g., dateFrom, dateTo, status)
   const handleChartFilter = (filterData) => {
     clearFilter();
     if (filterData) {
@@ -109,7 +114,7 @@ function AppInner() {
             <DashboardView
               onEntryClick={handleEntryClick}
               onQuickFilter={handleQuickFilter}
-              onChartFilter={handleChartFilter}   // new
+              onChartFilter={handleChartFilter}
             />
           )}
           {screen === 'reports' && <ReportsView />}
