@@ -2,29 +2,18 @@ import { useState, useEffect } from 'react';
 import { useData } from '../context/DataContext';
 import StatusBadge from './StatusBadge';
 import {
-  FileText,
-  CheckCircle,
-  Clock,
-  AlertCircle,
+  FileText, CheckCircle, Clock, AlertCircle,
 } from 'lucide-react';
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Cell,
 } from 'recharts';
 import { CardSkeleton, ChartSkeleton, TableSkeleton } from './Skeletons';
 
 const CHART_COLORS = ['#6366f1', '#8b5cf6', '#a78bfa', '#c4b5fd'];
 const PIE_COLORS = ['#10b981', '#f59e0b', '#6366f1'];
 
-export default function DashboardView({ onEntryClick }) {
+export default function DashboardView({ onEntryClick, onQuickFilter }) {
   const { entries, role } = useData();
   const [loading, setLoading] = useState(true);
 
@@ -37,9 +26,7 @@ export default function DashboardView({ onEntryClick }) {
     return (
       <div className="space-y-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <CardSkeleton key={i} />
-          ))}
+          {Array.from({ length: 4 }).map((_, i) => <CardSkeleton key={i} />)}
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <ChartSkeleton />
@@ -54,9 +41,7 @@ export default function DashboardView({ onEntryClick }) {
   const captured = entries.filter((e) => e.status === 'captured').length;
   const pending = entries.filter((e) => e.status === 'pending').length;
   const inProgress = entries.filter((e) => e.status === 'inprogress').length;
-  const recent = [...entries]
-    .sort((a, b) => new Date(b.date) - new Date(a.date))
-    .slice(0, 5);
+  const recent = [...entries].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5);
 
   const monthsMap = {};
   entries.forEach((e) => {
@@ -75,15 +60,23 @@ export default function DashboardView({ onEntryClick }) {
 
   return (
     <div className="space-y-6">
-      {/* Summary cards: 1 / 2 / 4 cols */}
+      {/* Summary cards – now clickable */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <SummaryCard icon={FileText} label="Total Entries" value={total} sub="All time" color="indigo" />
-        <SummaryCard icon={CheckCircle} label="Captured" value={captured} sub="Submitted forms" color="emerald" />
-        <SummaryCard icon={Clock} label="Pending" value={pending} sub="Awaiting action" color="amber" />
-        <SummaryCard icon={AlertCircle} label="In Progress" value={inProgress} sub="Drafts" color="violet" />
+        <div onClick={() => onQuickFilter('all')} className="cursor-pointer">
+          <SummaryCard icon={FileText} label="Total Entries" value={total} sub="All time" color="indigo" />
+        </div>
+        <div onClick={() => onQuickFilter('captured')} className="cursor-pointer">
+          <SummaryCard icon={CheckCircle} label="Captured" value={captured} sub="Submitted forms" color="emerald" />
+        </div>
+        <div onClick={() => onQuickFilter('pending')} className="cursor-pointer">
+          <SummaryCard icon={Clock} label="Pending" value={pending} sub="Awaiting action" color="amber" />
+        </div>
+        <div onClick={() => onQuickFilter('inprogress')} className="cursor-pointer">
+          <SummaryCard icon={AlertCircle} label="In Progress" value={inProgress} sub="Drafts" color="violet" />
+        </div>
       </div>
 
-      {/* Charts — stack on mobile */}
+      {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="glass-card rounded-2xl p-4 sm:p-6">
           <h3 className="mb-4 text-sm font-semibold text-slate-700">Forms captured per month</h3>
@@ -126,14 +119,12 @@ export default function DashboardView({ onEntryClick }) {
         </div>
       </div>
 
-      {/* Recent activity — scrollable table */}
+      {/* Recent activity – rows already clickable */}
       <div className="glass-card overflow-hidden rounded-2xl">
         <div className="px-4 sm:px-6 py-4 border-b border-white/20">
           <h3 className="text-sm font-semibold text-slate-800">
             Recent activity
-            {role === 'supervisor' && (
-              <span className="ml-2 text-[11px] font-normal text-slate-400">All locations</span>
-            )}
+            {role === 'supervisor' && <span className="ml-2 text-[11px] font-normal text-slate-400">All locations</span>}
           </h3>
         </div>
         <div className="overflow-x-auto">
@@ -143,9 +134,7 @@ export default function DashboardView({ onEntryClick }) {
                 <th className="px-4 sm:px-6 py-3 text-left">Date</th>
                 <th className="px-4 sm:px-6 py-3 text-left">Indicator</th>
                 <th className="px-4 sm:px-6 py-3 text-left">Added by</th>
-                {role === 'supervisor' && (
-                  <th className="px-4 sm:px-6 py-3 text-left">Location</th>
-                )}
+                {role === 'supervisor' && <th className="px-4 sm:px-6 py-3 text-left">Location</th>}
                 <th className="px-4 sm:px-6 py-3 text-left">Status</th>
               </tr>
             </thead>
@@ -159,19 +148,13 @@ export default function DashboardView({ onEntryClick }) {
                   <td className="px-4 sm:px-6 py-3 text-sm text-slate-600">{entry.date}</td>
                   <td className="px-4 sm:px-6 py-3 text-sm font-medium text-slate-800">{entry.indicator}</td>
                   <td className="px-4 sm:px-6 py-3 text-sm text-slate-700">{entry.addedBy}</td>
-                  {role === 'supervisor' && (
-                    <td className="px-4 sm:px-6 py-3 text-sm text-slate-500">{entry.location}</td>
-                  )}
-                  <td className="px-4 sm:px-6 py-3">
-                    <StatusBadge status={entry.status} />
-                  </td>
+                  {role === 'supervisor' && <td className="px-4 sm:px-6 py-3 text-sm text-slate-500">{entry.location}</td>}
+                  <td className="px-4 sm:px-6 py-3"><StatusBadge status={entry.status} /></td>
                 </tr>
               ))}
               {recent.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-6 py-8 text-center text-sm text-slate-400">
-                    No entries yet.
-                  </td>
+                  <td colSpan={5} className="px-6 py-8 text-center text-sm text-slate-400">No entries yet.</td>
                 </tr>
               )}
             </tbody>
