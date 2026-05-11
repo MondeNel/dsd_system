@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 
 const STORAGE_KEY = 'eme_data';
 
@@ -145,9 +145,11 @@ export function DataProvider({ children }) {
     dateTo: '',
   });
 
-  // Clear all filters
-  const clearFilter = () =>
-    setFilter({ indicator: '', status: '', dateFrom: '', dateTo: '' });
+  // Clear all filters — memoized to keep the reference stable
+  const clearFilter = useCallback(
+    () => setFilter({ indicator: '', status: '', dateFrom: '', dateTo: '' }),
+    []
+  );
 
   // Current user info — in a real app this comes from auth
   const currentUser = {
