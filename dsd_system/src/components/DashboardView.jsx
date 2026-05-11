@@ -113,7 +113,7 @@ export default function DashboardView({ onEntryClick, onQuickFilter, onChartFilt
           <h3 className="mb-4 text-sm font-semibold text-slate-700 dark:text-slate-200">Forms captured per month</h3>
           <ResponsiveContainer width="100%" height={250}>
             <BarChart data={barData}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(148,163,184,0.25)" />
               <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#64748b' }} />
               <YAxis allowDecimals={false} tick={{ fontSize: 12, fill: '#64748b' }} />
               <Tooltip cursor={{ fill: '#f1f5f9' }} />
@@ -149,7 +149,7 @@ export default function DashboardView({ onEntryClick, onQuickFilter, onChartFilt
                 cursor="pointer"
               >
                 {statusData.map((_, index) => (
-                  <Cell key={index} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                  <Cell key={index} fill={PIE_COLORS[index % PIE_COLORS.length]} stroke="none" />
                 ))}
               </Pie>
               <Tooltip />
