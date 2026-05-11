@@ -7,6 +7,7 @@ import {
   ListChecks,
   ArrowLeft,
   ArrowRight,
+  AlertCircle,
 } from 'lucide-react';
 
 const SERVICE_OPTIONS = [
@@ -21,6 +22,8 @@ export default function FormEntryView({ entry, onBack }) {
   const isEditing = !!entry;
 
   const [step, setStep] = useState(isEditing ? 2 : 1);
+  const [errors, setErrors] = useState({});
+
   const [form, setForm] = useState(() => {
     const defaultForm = {
       servicePoint: 'Prieska Siya-Themba Service Point',
@@ -32,7 +35,7 @@ export default function FormEntryView({ entry, onBack }) {
       age19_35: 0,
       age36_59: 0,
       age60plus: 0,
-      services: Object.fromEntries(SERVICE_OPTIONS.map((s) => [s, 0])),
+      services: Object.fromEntries(SERVICE_OPTIONS.map(s => [s, 0])),
       status: 'inprogress',
       date: new Date().toISOString().split('T')[0],
       addedBy: 'Velile Sean',
@@ -59,7 +62,18 @@ export default function FormEntryView({ entry, onBack }) {
     return defaultForm;
   });
 
-  const update = (field, value) => setForm((f) => ({ ...f, [field]: value }));
+  const update = (field, value) => {
+    setForm(f => ({ ...f, [field]: value }));
+    // Clear related error when field changes
+    if (errors[field]) {
+      setErrors(prev => {
+        const next = { ...prev };
+        delete next[field];
+        return next;
+      });
+    }
+  };
+
   const toggleService = (name) => {
     const current = form.services[name] || 0;
     update('services', { ...form.services, [name]: current > 0 ? 0 : 0 });
@@ -67,13 +81,47 @@ export default function FormEntryView({ entry, onBack }) {
 
   const totalParticipants = parseInt(form.male, 10) + parseInt(form.female, 10);
   const ageTotal =
-    parseInt(form.age0_18, 10) +
-    parseInt(form.age19_35, 10) +
-    parseInt(form.age36_59, 10) +
-    parseInt(form.age60plus, 10);
-  const ageMismatch = ageTotal !== totalParticipants;
+    parseInt(form.age0_18, 10) + parseInt(form.age19_35, 10) +
+    parseInt(form.age36_59, 10) + parseInt(form.age60plus, 10);
+
+  const validateStep1 = () => {
+    const errs = {};
+    if (!form.indicator.trim()) {
+      errs.indicator = 'Please select an indicator';
+    }
+    setErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
+  const validateStep2 = () => {
+    const errs = {};
+    if (totalParticipants < 0) errs.male = 'Males cannot be negative';
+    if (totalParticipants < 0) errs.female = 'Females cannot be negative'; // won't show because min=0
+
+    if (totalParticipants !== ageTotal) {
+      errs.ageTotal = `Age groups sum (${ageTotal}) must equal total males+females (${totalParticipants})`;
+    }
+
+    // At least one service selected (optional for some indicators, but we enforce here)
+    const serviceCount = Object.values(form.services).filter(v => v > 0).length;
+    if (serviceCount === 0) {
+      errs.services = 'Select at least one service and set quantity';
+    }
+
+    setErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
+  const handleNextStep1 = () => {
+    if (validateStep1()) setStep(2);
+  };
+
+  const handleNextStep2 = () => {
+    if (validateStep2()) setStep(3);
+  };
 
   const handleSubmit = () => {
+    if (!validateStep2()) return; // final check
     const finalData = {
       date: form.date,
       indicator: form.indicator,
@@ -121,18 +169,10 @@ export default function FormEntryView({ entry, onBack }) {
   return (
     <div className="mx-auto max-w-3xl">
       <p className="mb-2 text-xs text-gray-500">
-        Step {step} of 3 —{' '}
-        {step === 1
-          ? 'Service details'
-          : step === 2
-          ? 'Participant breakdown'
-          : 'Review & submit'}
+        Step {step} of 3 — {step === 1 ? 'Service details' : step === 2 ? 'Participant breakdown' : 'Review & submit'}
       </p>
       <div className="mb-6 h-1.5 w-full overflow-hidden rounded-full bg-gray-200">
-        <div
-          className="h-full rounded-full bg-emerald-600 transition-all duration-300"
-          style={{ width: progressWidth }}
-        ></div>
+        <div className="h-full rounded-full bg-emerald-600 transition-all duration-300" style={{ width: progressWidth }}></div>
       </div>
 
       {step === 1 && (
@@ -146,7 +186,7 @@ export default function FormEntryView({ entry, onBack }) {
               <select
                 className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500"
                 value={form.servicePoint}
-                onChange={(e) => update('servicePoint', e.target.value)}
+                onChange={e => update('servicePoint', e.target.value)}
               >
                 <option>Prieska Siya-Themba Service Point</option>
               </select>
@@ -156,7 +196,7 @@ export default function FormEntryView({ entry, onBack }) {
               <select
                 className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm"
                 value={form.reportingMonth}
-                onChange={(e) => update('reportingMonth', e.target.value)}
+                onChange={e => update('reportingMonth', e.target.value)}
               >
                 <option>April 2026</option>
               </select>
@@ -164,9 +204,11 @@ export default function FormEntryView({ entry, onBack }) {
             <label className="col-span-2 text-xs font-medium text-gray-600">
               Indicator
               <select
-                className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm"
+                className={`mt-1 w-full rounded border px-3 py-2 text-sm ${
+                  errors.indicator ? 'border-red-400 focus:border-red-500' : 'border-gray-300 focus:border-emerald-500'
+                }`}
                 value={form.indicator}
-                onChange={(e) => update('indicator', e.target.value)}
+                onChange={e => update('indicator', e.target.value)}
               >
                 <option value="">Select indicator...</option>
                 <option>Family members in Family Preservation Services</option>
@@ -174,11 +216,16 @@ export default function FormEntryView({ entry, onBack }) {
                 <option>Number of Reported Cases of Child Abuse</option>
                 <option>Parenting programme participants</option>
               </select>
+              {errors.indicator && (
+                <p className="mt-1 flex items-center gap-1 text-xs text-red-500">
+                  <AlertCircle size={12} /> {errors.indicator}
+                </p>
+              )}
             </label>
           </div>
           <div className="mt-6 flex justify-end">
             <button
-              onClick={() => setStep(2)}
+              onClick={handleNextStep1}
               className="inline-flex items-center gap-1.5 rounded bg-emerald-700 px-4 py-2 text-sm text-white hover:bg-emerald-800"
             >
               Next
@@ -201,7 +248,7 @@ export default function FormEntryView({ entry, onBack }) {
                   type="number"
                   min="0"
                   value={form.male}
-                  onChange={(e) => update('male', e.target.value)}
+                  onChange={e => update('male', e.target.value)}
                   className="mt-1 w-full rounded border px-3 py-2 text-sm"
                 />
               </label>
@@ -211,7 +258,7 @@ export default function FormEntryView({ entry, onBack }) {
                   type="number"
                   min="0"
                   value={form.female}
-                  onChange={(e) => update('female', e.target.value)}
+                  onChange={e => update('female', e.target.value)}
                   className="mt-1 w-full rounded border px-3 py-2 text-sm"
                 />
               </label>
@@ -235,16 +282,15 @@ export default function FormEntryView({ entry, onBack }) {
                     type="number"
                     min="0"
                     value={form[key]}
-                    onChange={(e) => update(key, e.target.value)}
+                    onChange={e => update(key, e.target.value)}
                     className="w-full bg-transparent text-center text-lg font-medium text-gray-800 outline-none"
                   />
                 </div>
               ))}
             </div>
-            {ageMismatch && (
-              <p className="mt-3 text-xs text-red-500">
-                Total age groups ({ageTotal}) must equal total males+females (
-                {totalParticipants}).
+            {errors.ageTotal && (
+              <p className="mt-3 flex items-center gap-1 text-xs text-red-500">
+                <AlertCircle size={12} /> {errors.ageTotal}
               </p>
             )}
           </div>
@@ -254,44 +300,41 @@ export default function FormEntryView({ entry, onBack }) {
               <ListChecks size={16} className="text-emerald-700" /> Services rendered
             </h3>
             <div className="grid grid-cols-2 gap-2">
-              {SERVICE_OPTIONS.map((svc) => {
+              {SERVICE_OPTIONS.map(svc => {
                 const selected = (form.services[svc] || 0) > 0;
                 return (
                   <div
                     key={svc}
                     onClick={() => toggleService(svc)}
                     className={`flex cursor-pointer items-center justify-between rounded border px-3 py-2 ${
-                      selected
-                        ? 'border-emerald-500 bg-emerald-50'
-                        : 'border-gray-200'
+                      selected ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200'
                     }`}
                   >
-                    <span
-                      className={`text-sm ${
-                        selected
-                          ? 'font-medium text-emerald-700'
-                          : 'text-gray-700'
-                      }`}
-                    >
+                    <span className={`text-sm ${selected ? 'font-medium text-emerald-700' : 'text-gray-700'}`}>
                       {svc}
                     </span>
                     <input
                       type="number"
                       min="0"
                       value={form.services[svc] || 0}
-                      onChange={(e) =>
+                      onChange={e =>
                         update('services', {
                           ...form.services,
                           [svc]: parseInt(e.target.value, 10) || 0,
                         })
                       }
-                      onClick={(e) => e.stopPropagation()}
+                      onClick={e => e.stopPropagation()}
                       className="w-12 rounded border border-gray-300 px-1 py-0.5 text-center text-sm"
                     />
                   </div>
                 );
               })}
             </div>
+            {errors.services && (
+              <p className="mt-3 flex items-center gap-1 text-xs text-red-500">
+                <AlertCircle size={12} /> {errors.services}
+              </p>
+            )}
           </div>
 
           <div className="flex items-center justify-between">
@@ -306,7 +349,7 @@ export default function FormEntryView({ entry, onBack }) {
             </button>
             <p className="text-xs text-gray-400">All changes saved automatically</p>
             <button
-              onClick={() => setStep(3)}
+              onClick={handleNextStep2}
               className="inline-flex items-center gap-1.5 rounded bg-emerald-700 px-4 py-2 text-sm text-white hover:bg-emerald-800"
             >
               Next: Review & submit <ArrowRight size={14} />
