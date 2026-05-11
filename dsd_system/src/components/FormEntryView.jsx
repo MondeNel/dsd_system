@@ -184,16 +184,16 @@ export default function FormEntryView({ entry, onBack, onDirty, prefillData }) {
   if (submitted) {
     return (
       <div className="mx-auto flex max-w-md flex-col items-center py-20 text-center">
-        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100">
-          <CheckCircle size={28} className="text-emerald-700" />
+        <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-500 shadow-lg shadow-emerald-500/25">
+          <CheckCircle size={34} className="text-white" />
         </div>
-        <h3 className="mb-1 text-base font-medium text-gray-800">Form submitted</h3>
-        <p className="mb-6 text-sm text-gray-500">
+        <h3 className="mb-2 text-lg font-bold text-slate-800">Form submitted</h3>
+        <p className="mb-8 text-sm text-slate-500">
           Your entry has been captured successfully.
         </p>
         <button
           onClick={onBack}
-          className="rounded-md bg-emerald-700 px-5 py-2 text-sm text-white hover:bg-emerald-800"
+          className="rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-6 py-2.5 text-sm font-medium text-white shadow-lg shadow-indigo-500/25 hover:from-indigo-700 hover:to-violet-700 transition-all"
         >
           Back to Form Capture
         </button>
@@ -204,40 +204,40 @@ export default function FormEntryView({ entry, onBack, onDirty, prefillData }) {
   return (
     <div className="mx-auto max-w-3xl">
       {/* Close button */}
-      <div className="flex justify-end mb-1">
+      <div className="flex justify-end mb-2">
         <button
           onClick={onBack}
-          className="p-1 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition"
+          className="p-2 rounded-xl hover:bg-white/50 text-slate-400 hover:text-slate-600 transition"
           title="Close form"
         >
           <X size={18} />
         </button>
       </div>
 
-      {/* Progress */}
-      <div className="mb-6">
-        <div className="mb-2 flex items-center justify-between">
-          <p className="text-xs text-gray-500">
+      {/* Progress bar */}
+      <div className="glass-card rounded-2xl p-5 mb-6">
+        <div className="mb-3 flex items-center justify-between">
+          <p className="text-xs font-medium text-slate-500">
             Step {step} of 3 — {STEP_LABELS[step - 1]}
           </p>
-          <p className="text-xs text-gray-400">All changes saved automatically</p>
+          <p className="text-xs text-slate-400">All changes saved automatically</p>
         </div>
-        <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-200">
+        <div className="h-2 w-full overflow-hidden rounded-full bg-white/50">
           <div
-            className="h-full rounded-full bg-emerald-600 transition-all duration-300"
+            className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-violet-500 transition-all duration-500"
             style={{ width: progressWidth }}
           />
         </div>
-        <div className="mt-2 flex justify-between">
+        <div className="mt-3 flex justify-between">
           {STEP_LABELS.map((label, i) => (
             <span
               key={label}
-              className={`text-[11px] ${
+              className={`text-[11px] font-medium transition-colors ${
                 i + 1 === step
-                  ? 'font-medium text-emerald-700'
+                  ? 'text-indigo-600'
                   : i + 1 < step
-                  ? 'text-gray-400'
-                  : 'text-gray-300'
+                  ? 'text-slate-400'
+                  : 'text-slate-300'
               }`}
             >
               {label}
@@ -246,28 +246,30 @@ export default function FormEntryView({ entry, onBack, onDirty, prefillData }) {
         </div>
       </div>
 
-      {/* Step 1: Service details */}
+      {/* ── Step 1: Service details ── */}
       {step === 1 && (
-        <div className="rounded-lg border bg-white p-5">
-          <h3 className="mb-4 flex items-center gap-2 text-sm font-medium text-gray-800">
-            <Building size={16} className="text-emerald-700" />
+        <div className="glass-card rounded-2xl p-6">
+          <h3 className="mb-5 flex items-center gap-2 text-sm font-semibold text-slate-800">
+            <div className="rounded-lg bg-gradient-to-br from-indigo-500 to-blue-500 p-1.5">
+              <Building size={16} className="text-white" />
+            </div>
             Service details
           </h3>
           <div className="grid grid-cols-2 gap-4">
-            <label className="text-xs font-medium text-gray-600">
+            <label className="text-xs font-medium text-slate-600">
               Service point
               <select
-                className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none"
+                className="mt-1 w-full rounded-xl border border-slate-200 bg-white/70 backdrop-blur px-3 py-2.5 text-sm focus:border-indigo-400 focus:outline-none focus:ring-4 focus:ring-indigo-400/20"
                 value={form.servicePoint}
                 onChange={(e) => update('servicePoint', e.target.value)}
               >
                 <option>Prieska Siya-Themba Service Point</option>
               </select>
             </label>
-            <label className="text-xs font-medium text-gray-600">
+            <label className="text-xs font-medium text-slate-600">
               Reporting month
               <select
-                className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm focus:outline-none"
+                className="mt-1 w-full rounded-xl border border-slate-200 bg-white/70 backdrop-blur px-3 py-2.5 text-sm focus:border-indigo-400 focus:outline-none focus:ring-4 focus:ring-indigo-400/20"
                 value={form.reportingMonth}
                 onChange={(e) => update('reportingMonth', e.target.value)}
               >
@@ -277,13 +279,13 @@ export default function FormEntryView({ entry, onBack, onDirty, prefillData }) {
                 ))}
               </select>
             </label>
-            <label className="col-span-2 text-xs font-medium text-gray-600">
+            <label className="col-span-2 text-xs font-medium text-slate-600">
               Indicator
               <select
-                className={`mt-1 w-full rounded border px-3 py-2 text-sm focus:outline-none ${
+                className={`mt-1 w-full rounded-xl border bg-white/70 backdrop-blur px-3 py-2.5 text-sm focus:outline-none focus:ring-4 ${
                   errors.indicator
-                    ? 'border-red-400 focus:border-red-500'
-                    : 'border-gray-300 focus:border-emerald-500'
+                    ? 'border-red-300 focus:border-red-400 focus:ring-red-400/20'
+                    : 'border-slate-200 focus:border-indigo-400 focus:ring-indigo-400/20'
                 }`}
                 value={form.indicator}
                 onChange={(e) => update('indicator', e.target.value)}
@@ -304,7 +306,7 @@ export default function FormEntryView({ entry, onBack, onDirty, prefillData }) {
           <div className="mt-6 flex justify-end">
             <button
               onClick={() => { if (validateStep1()) setStep(2); }}
-              className="inline-flex items-center gap-1.5 rounded bg-emerald-700 px-4 py-2 text-sm text-white hover:bg-emerald-800"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-5 py-2.5 text-sm font-medium text-white shadow-lg shadow-indigo-500/25 hover:from-indigo-700 hover:to-violet-700 transition-all"
             >
               Next <ArrowRight size={14} />
             </button>
@@ -312,21 +314,23 @@ export default function FormEntryView({ entry, onBack, onDirty, prefillData }) {
         </div>
       )}
 
-      {/* Step 2: Participant breakdown */}
+      {/* ── Step 2: Participant breakdown ── */}
       {step === 2 && (
         <>
           {/* Gender */}
-          <div className="mb-4 rounded-lg border bg-white p-5">
-            <h3 className="mb-4 flex items-center gap-2 text-sm font-medium text-gray-800">
-              <Users size={16} className="text-emerald-700" />
+          <div className="glass-card rounded-2xl p-6 mb-4">
+            <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold text-slate-800">
+              <div className="rounded-lg bg-gradient-to-br from-violet-500 to-purple-500 p-1.5">
+                <Users size={16} className="text-white" />
+              </div>
               Gender breakdown
             </h3>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-6">
               {[
                 ['Number of males', 'male'],
                 ['Number of females', 'female'],
               ].map(([label, key]) => (
-                <label key={key} className="text-xs font-medium text-gray-600">
+                <label key={key} className="text-xs font-medium text-slate-600">
                   {label}
                   <div className="mt-1">
                     <StepperInput
@@ -343,27 +347,30 @@ export default function FormEntryView({ entry, onBack, onDirty, prefillData }) {
               ))}
             </div>
             {totalParticipants > 0 && (
-              <p className="mt-3 text-xs text-gray-400">
-                Total participants: <span className="font-medium text-gray-600">{totalParticipants}</span>
+              <p className="mt-4 text-xs font-medium text-slate-500">
+                Total participants:{' '}
+                <span className="text-slate-700 font-semibold">{totalParticipants}</span>
               </p>
             )}
           </div>
 
           {/* Age groups */}
-          <div className="mb-4 rounded-lg border bg-white p-5">
-            <h3 className="mb-4 flex items-center gap-2 text-sm font-medium text-gray-800">
-              <PieChart size={16} className="text-emerald-700" />
+          <div className="glass-card rounded-2xl p-6 mb-4">
+            <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold text-slate-800">
+              <div className="rounded-lg bg-gradient-to-br from-amber-500 to-orange-500 p-1.5">
+                <PieChart size={16} className="text-white" />
+              </div>
               Age groups
             </h3>
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-4 gap-3">
               {[
                 ['0 – 18 yrs', 'age0_18'],
                 ['19 – 35 yrs', 'age19_35'],
                 ['36 – 59 yrs', 'age36_59'],
                 ['60+ yrs', 'age60plus'],
               ].map(([label, key]) => (
-                <div key={key} className="rounded border border-gray-200 bg-gray-50 p-3 text-center">
-                  <p className="mb-1 text-[11px] text-gray-500">{label}</p>
+                <div key={key} className="bg-white/40 rounded-xl border border-white/30 p-3 text-center">
+                  <p className="mb-2 text-[11px] font-medium text-slate-500">{label}</p>
                   <StepperInput
                     value={parseInt(form[key], 10) || 0}
                     onChange={(newVal) => update(key, newVal)}
@@ -371,34 +378,36 @@ export default function FormEntryView({ entry, onBack, onDirty, prefillData }) {
                 </div>
               ))}
             </div>
-            <div className="mt-3 flex items-center justify-between">
-              <p className="text-[11px] text-gray-400">
+            <div className="mt-4 flex items-center justify-between">
+              <p className="text-xs text-slate-500">
                 Age total:{' '}
-                <span className={`font-medium ${ageTotal === totalParticipants ? 'text-emerald-600' : 'text-red-500'}`}>
+                <span className={`font-semibold ${ageTotal === totalParticipants ? 'text-emerald-600' : 'text-red-500'}`}>
                   {ageTotal}
-                </span>
-                {' / '}expected: <span className="font-medium text-gray-600">{totalParticipants}</span>
+                </span>{' '}
+                / expected: <span className="font-semibold text-slate-700">{totalParticipants}</span>
               </p>
               {ageTotal === totalParticipants && totalParticipants > 0 && (
-                <span className="flex items-center gap-1 text-[11px] text-emerald-600">
-                  <CheckCircle size={11} /> Totals match
+                <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-600">
+                  <CheckCircle size={12} /> Totals match
                 </span>
               )}
             </div>
             {errors.ageTotal && (
-              <p className="mt-1 flex items-center gap-1 text-xs text-red-500">
+              <p className="mt-2 flex items-center gap-1 text-xs text-red-500">
                 <AlertCircle size={12} /> {errors.ageTotal}
               </p>
             )}
           </div>
 
           {/* Services */}
-          <div className="mb-6 rounded-lg border bg-white p-5">
-            <h3 className="mb-4 flex items-center gap-2 text-sm font-medium text-gray-800">
-              <ListChecks size={16} className="text-emerald-700" />
+          <div className="glass-card rounded-2xl p-6 mb-6">
+            <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold text-slate-800">
+              <div className="rounded-lg bg-gradient-to-br from-emerald-500 to-teal-500 p-1.5">
+                <ListChecks size={16} className="text-white" />
+              </div>
               Services rendered
             </h3>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 gap-3">
               {SERVICE_OPTIONS.map((svc) => {
                 const count = form.services[svc] || 0;
                 const selected = count > 0;
@@ -406,17 +415,13 @@ export default function FormEntryView({ entry, onBack, onDirty, prefillData }) {
                   <div
                     key={svc}
                     onClick={() => toggleService(svc)}
-                    className={`flex cursor-pointer items-center justify-between rounded border px-3 py-2.5 transition-colors ${
+                    className={`flex cursor-pointer items-center justify-between rounded-xl border px-4 py-3 transition-all ${
                       selected
-                        ? 'border-emerald-500 bg-emerald-50'
-                        : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                        ? 'border-indigo-300 bg-indigo-50/60 backdrop-blur shadow-sm'
+                        : 'border-slate-200 bg-white/40 backdrop-blur hover:border-slate-300 hover:bg-white/60'
                     }`}
                   >
-                    <span
-                      className={`text-sm ${
-                        selected ? 'font-medium text-emerald-700' : 'text-gray-700'
-                      }`}
-                    >
+                    <span className={`text-sm font-medium ${selected ? 'text-indigo-700' : 'text-slate-700'}`}>
                       {svc}
                     </span>
                     <div onClick={(e) => e.stopPropagation()}>
@@ -445,13 +450,13 @@ export default function FormEntryView({ entry, onBack, onDirty, prefillData }) {
           <div className="flex items-center justify-between">
             <button
               onClick={() => { saveDraft(); setStep(1); }}
-              className="inline-flex items-center gap-1.5 rounded border px-4 py-2 text-sm hover:bg-gray-50"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white/60 backdrop-blur px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-white/80 transition"
             >
               <ArrowLeft size={14} /> Back
             </button>
             <button
               onClick={() => { if (validateStep2()) setStep(3); }}
-              className="inline-flex items-center gap-1.5 rounded bg-emerald-700 px-4 py-2 text-sm text-white hover:bg-emerald-800"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-5 py-2.5 text-sm font-medium text-white shadow-lg shadow-indigo-500/25 hover:from-indigo-700 hover:to-violet-700 transition-all"
             >
               Next: Review & submit <ArrowRight size={14} />
             </button>
@@ -459,11 +464,11 @@ export default function FormEntryView({ entry, onBack, onDirty, prefillData }) {
         </>
       )}
 
-      {/* Step 3: Review */}
+      {/* ── Step 3: Review ── */}
       {step === 3 && (
-        <div className="rounded-lg border bg-white p-5">
-          <h3 className="mb-5 text-sm font-medium text-gray-800">Review your entry</h3>
-          <dl className="divide-y divide-gray-100 text-sm">
+        <div className="glass-card rounded-2xl p-6">
+          <h3 className="mb-5 text-sm font-semibold text-slate-800">Review your entry</h3>
+          <dl className="divide-y divide-slate-100 text-sm">
             {[
               ['Service point', form.servicePoint],
               ['Reporting month', form.reportingMonth],
@@ -482,22 +487,22 @@ export default function FormEntryView({ entry, onBack, onDirty, prefillData }) {
                   .join(', ') || 'None selected',
               ],
             ].map(([label, value]) => (
-              <div key={label} className="flex py-2.5">
-                <dt className="w-1/3 text-gray-500">{label}</dt>
-                <dd className="flex-1 text-gray-800">{value}</dd>
+              <div key={label} className="flex py-3">
+                <dt className="w-1/3 font-medium text-slate-500">{label}</dt>
+                <dd className="flex-1 font-medium text-slate-800">{value}</dd>
               </div>
             ))}
           </dl>
           <div className="mt-6 flex justify-between">
             <button
               onClick={() => setStep(2)}
-              className="inline-flex items-center gap-1.5 rounded border px-4 py-2 text-sm hover:bg-gray-50"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white/60 backdrop-blur px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-white/80 transition"
             >
               <ArrowLeft size={14} /> Edit
             </button>
             <button
               onClick={handleSubmit}
-              className="rounded bg-emerald-700 px-6 py-2 text-sm text-white hover:bg-emerald-800"
+              className="rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 px-6 py-2.5 text-sm font-medium text-white shadow-lg shadow-emerald-500/25 hover:from-emerald-600 hover:to-teal-600 transition-all"
             >
               Submit form
             </button>
