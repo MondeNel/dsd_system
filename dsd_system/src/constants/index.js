@@ -20,15 +20,15 @@ export const SERVICE_OPTIONS = [
 export const STATUS_CONFIG = {
   captured: {
     label: 'Captured',
-    className: 'bg-lime-100 text-lime-800',
+    className: 'bg-emerald-100 text-emerald-700',
   },
   pending: {
     label: 'Pending',
-    className: 'bg-amber-100 text-amber-800',
+    className: 'bg-amber-100 text-amber-700',
   },
   inprogress: {
     label: 'In progress',
-    className: 'bg-blue-100 text-blue-800',
+    className: 'bg-indigo-100 text-indigo-700',
   },
 };
 

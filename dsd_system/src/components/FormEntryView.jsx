@@ -10,7 +10,9 @@ import {
   ArrowRight,
   AlertCircle,
   CheckCircle,
+  X,
 } from 'lucide-react';
+import StepperInput from './StepperInput';
 
 const STEP_LABELS = ['Service details', 'Participant breakdown', 'Review & submit'];
 
@@ -60,7 +62,24 @@ export default function FormEntryView({ entry, onBack, onDirty, prefillData }) {
     return defaultForm;
   });
 
-  // Notify parent when form becomes dirty
+  // Prefill from chat assistant
+  useEffect(() => {
+    if (prefillData && !isEditing) {
+      setForm((prev) => ({
+        ...prev,
+        indicator: prefillData.indicator || prev.indicator,
+        male: prefillData.male ?? prev.male,
+        female: prefillData.female ?? prev.female,
+        age0_18: prefillData.age0_18 ?? prev.age0_18,
+        age19_35: prefillData.age19_35 ?? prev.age19_35,
+        age36_59: prefillData.age36_59 ?? prev.age36_59,
+        age60plus: prefillData.age60plus ?? prev.age60plus,
+        services: { ...prev.services, ...(prefillData.services || {}) },
+        reportingMonth: prefillData.reportingMonth || prev.reportingMonth,
+      }));
+    }
+  }, [prefillData, isEditing]);
+
   const update = (field, value) => {
     onDirty?.();
     setForm((f) => ({ ...f, [field]: value }));
@@ -73,7 +92,6 @@ export default function FormEntryView({ entry, onBack, onDirty, prefillData }) {
     }
   };
 
-  // FIX: toggle service — was always setting to 0
   const toggleService = (name) => {
     onDirty?.();
     const current = form.services[name] || 0;
@@ -83,8 +101,7 @@ export default function FormEntryView({ entry, onBack, onDirty, prefillData }) {
     });
   };
 
-  const totalParticipants =
-    parseInt(form.male, 10) + parseInt(form.female, 10);
+  const totalParticipants = parseInt(form.male, 10) + parseInt(form.female, 10);
   const ageTotal =
     parseInt(form.age0_18, 10) +
     parseInt(form.age19_35, 10) +
@@ -163,7 +180,6 @@ export default function FormEntryView({ entry, onBack, onDirty, prefillData }) {
   };
 
   const progressWidth = `${(step / 3) * 100}%`;
-  
 
   if (submitted) {
     return (
@@ -187,6 +203,17 @@ export default function FormEntryView({ entry, onBack, onDirty, prefillData }) {
 
   return (
     <div className="mx-auto max-w-3xl">
+      {/* Close button */}
+      <div className="flex justify-end mb-1">
+        <button
+          onClick={onBack}
+          className="p-1 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition"
+          title="Close form"
+        >
+          <X size={18} />
+        </button>
+      </div>
+
       {/* Progress */}
       <div className="mb-6">
         <div className="mb-2 flex items-center justify-between">
@@ -201,7 +228,6 @@ export default function FormEntryView({ entry, onBack, onDirty, prefillData }) {
             style={{ width: progressWidth }}
           />
         </div>
-        {/* Step indicators */}
         <div className="mt-2 flex justify-between">
           {STEP_LABELS.map((label, i) => (
             <span
@@ -220,7 +246,7 @@ export default function FormEntryView({ entry, onBack, onDirty, prefillData }) {
         </div>
       </div>
 
-      {/* ── Step 1: Service details ── */}
+      {/* Step 1: Service details */}
       {step === 1 && (
         <div className="rounded-lg border bg-white p-5">
           <h3 className="mb-4 flex items-center gap-2 text-sm font-medium text-gray-800">
@@ -286,7 +312,7 @@ export default function FormEntryView({ entry, onBack, onDirty, prefillData }) {
         </div>
       )}
 
-      {/* ── Step 2: Participant breakdown ── */}
+      {/* Step 2: Participant breakdown */}
       {step === 2 && (
         <>
           {/* Gender */}
@@ -302,17 +328,12 @@ export default function FormEntryView({ entry, onBack, onDirty, prefillData }) {
               ].map(([label, key]) => (
                 <label key={key} className="text-xs font-medium text-gray-600">
                   {label}
-                  <input
-                    type="number"
-                    min="0"
-                    value={form[key]}
-                    onChange={(e) => update(key, e.target.value)}
-                    className={`mt-1 w-full rounded border px-3 py-2 text-sm focus:outline-none ${
-                      errors[key]
-                        ? 'border-red-400 focus:border-red-400'
-                        : 'border-gray-300 focus:border-emerald-500'
-                    }`}
-                  />
+                  <div className="mt-1">
+                    <StepperInput
+                      value={parseInt(form[key], 10) || 0}
+                      onChange={(newVal) => update(key, newVal)}
+                    />
+                  </div>
                   {errors[key] && (
                     <p className="mt-1 flex items-center gap-1 text-xs text-red-500">
                       <AlertCircle size={12} /> {errors[key]}
@@ -341,26 +362,21 @@ export default function FormEntryView({ entry, onBack, onDirty, prefillData }) {
                 ['36 – 59 yrs', 'age36_59'],
                 ['60+ yrs', 'age60plus'],
               ].map(([label, key]) => (
-                <div
-                  key={key}
-                  className={`rounded border p-3 text-center ${
-                    errors.ageTotal ? 'border-red-300 bg-red-50' : 'border-gray-200 bg-gray-50'
-                  }`}
-                >
+                <div key={key} className="rounded border border-gray-200 bg-gray-50 p-3 text-center">
                   <p className="mb-1 text-[11px] text-gray-500">{label}</p>
-                  <input
-                    type="number"
-                    min="0"
-                    value={form[key]}
-                    onChange={(e) => update(key, e.target.value)}
-                    className="w-full bg-transparent text-center text-lg font-medium text-gray-800 outline-none"
+                  <StepperInput
+                    value={parseInt(form[key], 10) || 0}
+                    onChange={(newVal) => update(key, newVal)}
                   />
                 </div>
               ))}
             </div>
             <div className="mt-3 flex items-center justify-between">
               <p className="text-[11px] text-gray-400">
-                Age total: <span className={`font-medium ${ageTotal === totalParticipants ? 'text-emerald-600' : 'text-red-500'}`}>{ageTotal}</span>
+                Age total:{' '}
+                <span className={`font-medium ${ageTotal === totalParticipants ? 'text-emerald-600' : 'text-red-500'}`}>
+                  {ageTotal}
+                </span>
                 {' / '}expected: <span className="font-medium text-gray-600">{totalParticipants}</span>
               </p>
               {ageTotal === totalParticipants && totalParticipants > 0 && (
@@ -403,20 +419,18 @@ export default function FormEntryView({ entry, onBack, onDirty, prefillData }) {
                     >
                       {svc}
                     </span>
-                    <input
-                      type="number"
-                      min="0"
-                      value={count}
-                      onClick={(e) => e.stopPropagation()}
-                      onChange={(e) => {
-                        onDirty?.();
-                        update('services', {
-                          ...form.services,
-                          [svc]: parseInt(e.target.value, 10) || 0,
-                        });
-                      }}
-                      className="w-12 rounded border border-gray-300 px-1 py-0.5 text-center text-sm focus:outline-none focus:border-emerald-400"
-                    />
+                    <div onClick={(e) => e.stopPropagation()}>
+                      <StepperInput
+                        value={count}
+                        onChange={(newVal) => {
+                          onDirty?.();
+                          update('services', {
+                            ...form.services,
+                            [svc]: newVal,
+                          });
+                        }}
+                      />
+                    </div>
                   </div>
                 );
               })}
@@ -445,7 +459,7 @@ export default function FormEntryView({ entry, onBack, onDirty, prefillData }) {
         </>
       )}
 
-      {/* ── Step 3: Review ── */}
+      {/* Step 3: Review */}
       {step === 3 && (
         <div className="rounded-lg border bg-white p-5">
           <h3 className="mb-5 text-sm font-medium text-gray-800">Review your entry</h3>

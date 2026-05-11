@@ -14,24 +14,28 @@ export default function CaptureView({ onNewEntry, onEntryClick }) {
       value: entries.filter((e) => e.indicator.includes('Family Preservation')).length,
       sub: 'April 2026',
       icon: Users,
+      color: 'from-indigo-500 to-blue-500',
     },
     {
       label: 'Child Abuse Cases',
       value: entries.filter((e) => e.indicator.includes('Child Abuse')).length,
       sub: 'Reported this month',
       icon: ShieldCheck,
+      color: 'from-rose-500 to-pink-500',
     },
     {
       label: 'Foster Care Orders',
       value: entries.filter((e) => e.indicator.includes('foster care')).length,
       sub: 'Valid & active',
       icon: Heart,
+      color: 'from-amber-500 to-orange-500',
     },
     {
       label: 'Forms Captured',
       value: entries.length,
       sub: 'This location',
       icon: FileCheck,
+      color: 'from-emerald-500 to-teal-500',
     },
   ];
 
@@ -53,32 +57,37 @@ export default function CaptureView({ onNewEntry, onEntryClick }) {
   return (
     <div>
       {/* Tab bar */}
-      <div className="mb-5 flex border-b border-gray-200">
+      <div className="mb-6 flex border-b border-white/20">
         {tabs.map(({ id, label }) => (
           <button
             key={id}
             onClick={() => setActiveTab(id)}
-            className={`px-4 py-2 text-[13px] transition-colors ${
+            className={`px-4 py-2.5 text-[13px] font-medium transition-all relative ${
               activeTab === id
-                ? 'border-b-2 border-emerald-700 font-medium text-emerald-700'
-                : 'text-gray-500 hover:text-gray-700'
+                ? 'text-indigo-600'
+                : 'text-slate-500 hover:text-slate-700'
             }`}
           >
             {label}
+            {activeTab === id && (
+              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-indigo-500 to-violet-500 rounded-full" />
+            )}
           </button>
         ))}
       </div>
 
       {/* Stats grid */}
-      <div className="mb-6 grid grid-cols-4 gap-3">
-        {stats.map(({ label, value, sub, icon: Icon }) => (
-          <div key={label} className="rounded-lg border border-gray-200 bg-white p-4">
+      <div className="mb-6 grid grid-cols-4 gap-4">
+        {stats.map(({ label, value, sub, icon: Icon, color }) => (
+          <div key={label} className="glass-card rounded-2xl p-4 transition-all hover:shadow-lg hover:-translate-y-0.5">
             <div className="flex items-start justify-between">
-              <p className="text-xs text-gray-500">{label}</p>
-              <Icon size={18} className="text-gray-400" />
+              <p className="text-xs font-medium text-slate-500">{label}</p>
+              <div className={`rounded-lg bg-gradient-to-br ${color} p-2`}>
+                <Icon size={16} className="text-white" />
+              </div>
             </div>
-            <p className="mt-1.5 text-2xl font-medium text-gray-800">{value}</p>
-            <p className="mt-1 text-[11px] text-gray-400">{sub}</p>
+            <p className="mt-2 text-2xl font-bold text-slate-800">{value}</p>
+            <p className="mt-1 text-[11px] text-slate-400">{sub}</p>
           </div>
         ))}
       </div>
@@ -88,44 +97,44 @@ export default function CaptureView({ onNewEntry, onEntryClick }) {
         <CommentsView entries={entries} />
       ) : (
         <>
-          <div className="mb-3 flex items-center justify-between">
-            <h4 className="text-sm font-medium text-gray-800">Recent form captures</h4>
-            <button className="rounded-md border px-2.5 py-1 text-xs hover:bg-gray-50">
+          <div className="mb-4 flex items-center justify-between">
+            <h4 className="text-sm font-semibold text-slate-800">Recent form captures</h4>
+            <button className="rounded-lg border border-slate-200 bg-white/60 backdrop-blur px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-white/80 transition">
               View all
             </button>
           </div>
-          <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
+          <div className="glass-card overflow-hidden rounded-2xl">
             <table className="w-full">
-              <thead className="bg-gray-50 text-[11px] font-medium uppercase tracking-wider text-gray-500">
+              <thead className="bg-white/30 text-[11px] font-semibold uppercase text-slate-500">
                 <tr>
-                  <th className="px-4 py-2.5 text-left">Date</th>
-                  <th className="px-4 py-2.5 text-left">Indicator</th>
-                  <th className="px-4 py-2.5 text-left">Added by</th>
-                  <th className="px-4 py-2.5 text-left">Role</th>
-                  <th className="px-4 py-2.5 text-left">Location</th>
-                  <th className="px-4 py-2.5 text-left">Status</th>
+                  <th className="px-4 py-3 text-left">Date</th>
+                  <th className="px-4 py-3 text-left">Indicator</th>
+                  <th className="px-4 py-3 text-left">Added by</th>
+                  <th className="px-4 py-3 text-left">Role</th>
+                  <th className="px-4 py-3 text-left">Location</th>
+                  <th className="px-4 py-3 text-left">Status</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredEntries().map((entry) => (
                   <tr
                     key={entry.id}
-                    className="cursor-pointer border-t border-gray-100 hover:bg-gray-50"
+                    className="border-t border-white/20 hover:bg-white/40 transition cursor-pointer"
                     onClick={() => onEntryClick(entry)}
                   >
-                    <td className="px-4 py-2.5 text-xs text-gray-500">{entry.date}</td>
-                    <td className="px-4 py-2.5 text-sm text-gray-800">{entry.indicator}</td>
-                    <td className="px-4 py-2.5 text-sm">{entry.addedBy}</td>
-                    <td className="px-4 py-2.5 text-xs text-gray-500">{entry.role}</td>
-                    <td className="px-4 py-2.5 text-xs text-gray-500">{entry.location}</td>
-                    <td className="px-4 py-2.5">
+                    <td className="px-4 py-3 text-sm text-slate-600">{entry.date}</td>
+                    <td className="px-4 py-3 text-sm font-medium text-slate-800">{entry.indicator}</td>
+                    <td className="px-4 py-3 text-sm text-slate-700">{entry.addedBy}</td>
+                    <td className="px-4 py-3 text-sm text-slate-500">{entry.role}</td>
+                    <td className="px-4 py-3 text-sm text-slate-500">{entry.location}</td>
+                    <td className="px-4 py-3">
                       <StatusBadge status={entry.status} />
                     </td>
                   </tr>
                 ))}
                 {filteredEntries().length === 0 && (
                   <tr>
-                    <td colSpan={6} className="px-4 py-6 text-center text-sm text-gray-400">
+                    <td colSpan={6} className="px-4 py-8 text-center text-sm text-slate-400">
                       No entries found.
                     </td>
                   </tr>

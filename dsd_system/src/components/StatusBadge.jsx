@@ -7,7 +7,7 @@ export default function StatusBadge({ status }) {
   };
   return (
     <span
-      className={`inline-block rounded-full px-2.5 py-0.5 text-[11px] font-medium ${config.className}`}
+      className={`inline-block rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${config.className}`}
     >
       {config.label}
     </span>
