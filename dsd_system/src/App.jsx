@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';   // add useEffect
+import { useState, useCallback, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import Topbar from './components/Topbar';
 import CaptureView from './components/CaptureView';
@@ -15,6 +15,7 @@ import { SCREEN_TITLES } from './constants/index';
 function AppInner() {
   const [screen, setScreen] = useState('dashboard');
   const [editingEntry, setEditingEntry] = useState(null);
+  const [startStep, setStartStep] = useState(undefined);  // <-- new
   const [formDirty, setFormDirty] = useState(false);
   const [prefillData, setPrefillData] = useState(null);
   const [pendingNav, setPendingNav] = useState(null);
@@ -26,23 +27,28 @@ function AppInner() {
   const closeSidebar = () => setIsSidebarOpen(false);
 
   const navigateTo = useCallback(
-    (id, entry = null) => {
+    (id, entry = null, step = undefined) => {   // step added
       if (screen === 'form' && formDirty && id !== 'form') {
-        setPendingNav({ id, entry });
+        setPendingNav({ id, entry, step });
         return;
       }
-      doNavigate(id, entry);
+      doNavigate(id, entry, step);
       closeSidebar();
     },
     [screen, formDirty]
   );
 
-  const doNavigate = (id, entry = null) => {
+  const doNavigate = (id, entry = null, step = undefined) => {
     setScreen(id);
     setFormDirty(false);
     setPendingNav(null);
-    if (id === 'form') setEditingEntry(entry);
-    else setEditingEntry(null);
+    if (id === 'form') {
+      setEditingEntry(entry);
+      setStartStep(step);   // store the desired start step
+    } else {
+      setEditingEntry(null);
+      setStartStep(undefined);
+    }
   };
 
   // Clear global filter when dashboard is shown
@@ -53,15 +59,21 @@ function AppInner() {
   }, [screen, clearFilter]);
 
   const handleModalConfirm = () => {
-    if (pendingNav) doNavigate(pendingNav.id, pendingNav.entry);
+    if (pendingNav) {
+      doNavigate(pendingNav.id, pendingNav.entry, pendingNav.step);
+    }
   };
   const handleModalCancel = () => setPendingNav(null);
-  const handleEntryClick = (entry) => navigateTo('form', entry);
+
+  // Accept an optional start step (default undefined will use the form's logic)
+  const handleEntryClick = (entry, step) => navigateTo('form', entry, step);
+
   const handleChatPrefill = (data) => setPrefillData(data);
   const handleOpenForm = () => {
     setScreen('form');
     setEditingEntry(null);
     setFormDirty(false);
+    setStartStep(undefined);
   };
 
   const handleQuickFilter = (status) => {
@@ -104,7 +116,11 @@ function AppInner() {
             <FormEntryView
               entry={editingEntry}
               prefillData={prefillData}
-              onBack={() => { setPrefillData(null); navigateTo('capture'); }}
+              startStep={startStep}         // <-- pass startStep
+              onBack={() => {
+                setPrefillData(null);
+                navigateTo('capture');
+              }}
               onDirty={() => setFormDirty(true)}
             />
           )}

@@ -67,12 +67,12 @@ export default function InboxView({ onEntryClick }) {
                     <StatusBadge status={e.status} />
                   </td>
                   <td className="px-4 sm:px-5 py-3 text-right">
-                    <button
-                      onClick={() => onEntryClick?.(e)}
-                      className="rounded-lg border border-slate-200 bg-white/60 backdrop-blur px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-white/80 hover:border-slate-300 transition"
-                    >
-                      View
-                    </button>
+                   <button
+  onClick={() => onEntryClick?.(e, 3)}   // pass step 3 for direct review
+  className="rounded-lg border border-slate-200 bg-white/60 backdrop-blur px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-white/80 hover:border-slate-300 transition"
+>
+  View
+</button>
                   </td>
                 </tr>
               ))}
