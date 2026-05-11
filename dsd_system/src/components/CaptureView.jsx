@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useData } from '../context/DataContext';
 import CommentsView from './CommentsView';
 import StatusBadge from './StatusBadge';
@@ -6,8 +6,16 @@ import { Users, ShieldCheck, Heart, FileCheck } from 'lucide-react';
 import { StatsRowSkeleton, TabsSkeleton, TableSkeleton } from './Skeletons';
 
 export default function CaptureView({ onNewEntry, onEntryClick }) {
-  const { entries, loading } = useData();
+  const { entries } = useData();
   const [activeTab, setActiveTab] = useState('all');
+
+  // ---------- Per‑view loading state ----------
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 600);
+    return () => clearTimeout(timer);
+  }, []);
 
   // ---------- Loading skeleton ----------
   if (loading) {
@@ -24,7 +32,7 @@ export default function CaptureView({ onNewEntry, onEntryClick }) {
     );
   }
 
-  // ---------- Real content ----------
+  // ---------- Real content (unchanged) ----------
   const stats = [
     {
       label: 'Family Preservation',

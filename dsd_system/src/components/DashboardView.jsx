@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { useData } from '../context/DataContext';
 import StatusBadge from './StatusBadge';
 import {
@@ -24,32 +25,35 @@ const CHART_COLORS = ['#6366f1', '#8b5cf6', '#a78bfa', '#c4b5fd'];
 const PIE_COLORS = ['#10b981', '#f59e0b', '#6366f1'];
 
 export default function DashboardView({ onEntryClick }) {
-  const { entries, role, loading } = useData();
+  const { entries, role } = useData();
+
+  // ---------- Per‑view loading state ----------
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 600);
+    return () => clearTimeout(timer);
+  }, []);
 
   // ---------- Loading skeleton ----------
   if (loading) {
     return (
       <div className="space-y-6">
-        {/* Summary card skeletons */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {Array.from({ length: 4 }).map((_, i) => (
             <CardSkeleton key={i} />
           ))}
         </div>
-
-        {/* Chart skeletons */}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <ChartSkeleton />
           <ChartSkeleton />
         </div>
-
-        {/* Recent activity table skeleton */}
         <TableSkeleton rows={5} cols={role === 'supervisor' ? 5 : 4} />
       </div>
     );
   }
 
-  // ---------- Real content ----------
+  // ---------- Real content (unchanged) ----------
   const total = entries.length;
   const captured = entries.filter((e) => e.status === 'captured').length;
   const pending = entries.filter((e) => e.status === 'pending').length;

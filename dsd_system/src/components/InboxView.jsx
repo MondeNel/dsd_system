@@ -1,11 +1,36 @@
+import { useState, useEffect } from 'react';
 import { useData } from '../context/DataContext';
 import StatusBadge from './StatusBadge';
 import { Inbox } from 'lucide-react';
+import { TableSkeleton } from './Skeletons';
 
 export default function InboxView({ onEntryClick }) {
   const { entries } = useData();
+
+  // ---------- Per‑view loading state ----------
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 600);
+    return () => clearTimeout(timer);
+  }, []);
+
   const submitted = entries.filter((e) => e.status === 'captured');
 
+  // ---------- Loading skeleton ----------
+  if (loading) {
+    return (
+      <div>
+        <div className="mb-5 flex items-center justify-between">
+          <div className="h-5 w-20 rounded bg-slate-200/70 animate-pulse"></div>
+          <div className="h-5 w-16 rounded-full bg-slate-200/70 animate-pulse"></div>
+        </div>
+        <TableSkeleton rows={submitted.length || 3} cols={5} />
+      </div>
+    );
+  }
+
+  // ---------- Real content (unchanged) ----------
   return (
     <div>
       {/* Header */}
