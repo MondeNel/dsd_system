@@ -26,8 +26,6 @@ const PIE_COLORS = ['#10b981', '#f59e0b', '#6366f1'];
 
 export default function DashboardView({ onEntryClick }) {
   const { entries, role } = useData();
-
-  // ---------- Per‑view loading state ----------
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -35,16 +33,15 @@ export default function DashboardView({ onEntryClick }) {
     return () => clearTimeout(timer);
   }, []);
 
-  // ---------- Loading skeleton ----------
   if (loading) {
     return (
       <div className="space-y-6">
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {Array.from({ length: 4 }).map((_, i) => (
             <CardSkeleton key={i} />
           ))}
         </div>
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <ChartSkeleton />
           <ChartSkeleton />
         </div>
@@ -53,7 +50,6 @@ export default function DashboardView({ onEntryClick }) {
     );
   }
 
-  // ---------- Real content (unchanged) ----------
   const total = entries.length;
   const captured = entries.filter((e) => e.status === 'captured').length;
   const pending = entries.filter((e) => e.status === 'pending').length;
@@ -79,17 +75,17 @@ export default function DashboardView({ onEntryClick }) {
 
   return (
     <div className="space-y-6">
-      {/* Summary cards */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {/* Summary cards: 1 / 2 / 4 cols */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <SummaryCard icon={FileText} label="Total Entries" value={total} sub="All time" color="indigo" />
         <SummaryCard icon={CheckCircle} label="Captured" value={captured} sub="Submitted forms" color="emerald" />
         <SummaryCard icon={Clock} label="Pending" value={pending} sub="Awaiting action" color="amber" />
         <SummaryCard icon={AlertCircle} label="In Progress" value={inProgress} sub="Drafts" color="violet" />
       </div>
 
-      {/* Charts */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <div className="glass-card rounded-2xl p-6">
+      {/* Charts — stack on mobile */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="glass-card rounded-2xl p-4 sm:p-6">
           <h3 className="mb-4 text-sm font-semibold text-slate-700">Forms captured per month</h3>
           <ResponsiveContainer width="100%" height={250}>
             <BarChart data={barData}>
@@ -106,7 +102,7 @@ export default function DashboardView({ onEntryClick }) {
           </ResponsiveContainer>
         </div>
 
-        <div className="glass-card rounded-2xl p-6">
+        <div className="glass-card rounded-2xl p-4 sm:p-6">
           <h3 className="mb-4 text-sm font-semibold text-slate-700">Status breakdown</h3>
           <ResponsiveContainer width="100%" height={250}>
             <PieChart>
@@ -130,9 +126,9 @@ export default function DashboardView({ onEntryClick }) {
         </div>
       </div>
 
-      {/* Recent activity */}
+      {/* Recent activity — scrollable table */}
       <div className="glass-card overflow-hidden rounded-2xl">
-        <div className="px-6 py-4 border-b border-white/20">
+        <div className="px-4 sm:px-6 py-4 border-b border-white/20">
           <h3 className="text-sm font-semibold text-slate-800">
             Recent activity
             {role === 'supervisor' && (
@@ -140,45 +136,47 @@ export default function DashboardView({ onEntryClick }) {
             )}
           </h3>
         </div>
-        <table className="w-full">
-          <thead className="bg-white/30 text-[11px] font-semibold uppercase text-slate-500">
-            <tr>
-              <th className="px-6 py-3 text-left">Date</th>
-              <th className="px-6 py-3 text-left">Indicator</th>
-              <th className="px-6 py-3 text-left">Added by</th>
-              {role === 'supervisor' && (
-                <th className="px-6 py-3 text-left">Location</th>
-              )}
-              <th className="px-6 py-3 text-left">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {recent.map((entry) => (
-              <tr
-                key={entry.id}
-                className="border-t border-white/20 hover:bg-white/40 transition cursor-pointer"
-                onClick={() => onEntryClick(entry)}
-              >
-                <td className="px-6 py-3 text-sm text-slate-600">{entry.date}</td>
-                <td className="px-6 py-3 text-sm font-medium text-slate-800">{entry.indicator}</td>
-                <td className="px-6 py-3 text-sm text-slate-700">{entry.addedBy}</td>
-                {role === 'supervisor' && (
-                  <td className="px-6 py-3 text-sm text-slate-500">{entry.location}</td>
-                )}
-                <td className="px-6 py-3">
-                  <StatusBadge status={entry.status} />
-                </td>
-              </tr>
-            ))}
-            {recent.length === 0 && (
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[600px]">
+            <thead className="bg-white/30 text-[11px] font-semibold uppercase text-slate-500">
               <tr>
-                <td colSpan={5} className="px-6 py-8 text-center text-sm text-slate-400">
-                  No entries yet.
-                </td>
+                <th className="px-4 sm:px-6 py-3 text-left">Date</th>
+                <th className="px-4 sm:px-6 py-3 text-left">Indicator</th>
+                <th className="px-4 sm:px-6 py-3 text-left">Added by</th>
+                {role === 'supervisor' && (
+                  <th className="px-4 sm:px-6 py-3 text-left">Location</th>
+                )}
+                <th className="px-4 sm:px-6 py-3 text-left">Status</th>
               </tr>
-            )}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {recent.map((entry) => (
+                <tr
+                  key={entry.id}
+                  className="border-t border-white/20 hover:bg-white/40 transition cursor-pointer"
+                  onClick={() => onEntryClick(entry)}
+                >
+                  <td className="px-4 sm:px-6 py-3 text-sm text-slate-600">{entry.date}</td>
+                  <td className="px-4 sm:px-6 py-3 text-sm font-medium text-slate-800">{entry.indicator}</td>
+                  <td className="px-4 sm:px-6 py-3 text-sm text-slate-700">{entry.addedBy}</td>
+                  {role === 'supervisor' && (
+                    <td className="px-4 sm:px-6 py-3 text-sm text-slate-500">{entry.location}</td>
+                  )}
+                  <td className="px-4 sm:px-6 py-3">
+                    <StatusBadge status={entry.status} />
+                  </td>
+                </tr>
+              ))}
+              {recent.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="px-6 py-8 text-center text-sm text-slate-400">
+                    No entries yet.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
@@ -192,14 +190,14 @@ function SummaryCard({ icon: Icon, label, value, sub, color }) {
     violet: 'from-violet-500 to-purple-500',
   };
   return (
-    <div className="glass-card rounded-2xl p-5 transition-all hover:shadow-xl hover:-translate-y-0.5">
+    <div className="glass-card rounded-2xl p-4 sm:p-5 transition-all hover:shadow-xl hover:-translate-y-0.5">
       <div className="flex items-start justify-between">
         <p className="text-sm font-medium text-slate-500">{label}</p>
         <div className={`rounded-lg bg-gradient-to-br ${gradients[color]} p-2`}>
           <Icon size={18} className="text-white" />
         </div>
       </div>
-      <p className="mt-3 text-3xl font-bold text-slate-800">{value}</p>
+      <p className="mt-3 text-2xl sm:text-3xl font-bold text-slate-800">{value}</p>
       <p className="mt-1 text-xs text-slate-400">{sub}</p>
     </div>
   );

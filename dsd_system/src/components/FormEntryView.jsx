@@ -62,7 +62,6 @@ export default function FormEntryView({ entry, onBack, onDirty, prefillData }) {
     return defaultForm;
   });
 
-  // Prefill from chat assistant
   useEffect(() => {
     if (prefillData && !isEditing) {
       setForm((prev) => ({
@@ -95,10 +94,7 @@ export default function FormEntryView({ entry, onBack, onDirty, prefillData }) {
   const toggleService = (name) => {
     onDirty?.();
     const current = form.services[name] || 0;
-    update('services', {
-      ...form.services,
-      [name]: current > 0 ? 0 : 1,
-    });
+    update('services', { ...form.services, [name]: current > 0 ? 0 : 1 });
   };
 
   const totalParticipants = parseInt(form.male, 10) + parseInt(form.female, 10);
@@ -119,16 +115,12 @@ export default function FormEntryView({ entry, onBack, onDirty, prefillData }) {
     const errs = {};
     if (parseInt(form.male, 10) < 0) errs.male = 'Cannot be negative';
     if (parseInt(form.female, 10) < 0) errs.female = 'Cannot be negative';
-    if (totalParticipants === 0) {
-      errs.male = 'At least one participant required';
-    }
+    if (totalParticipants === 0) errs.male = 'At least one participant required';
     if (ageTotal !== totalParticipants) {
       errs.ageTotal = `Age groups total (${ageTotal}) must equal males + females (${totalParticipants})`;
     }
     const serviceCount = Object.values(form.services).filter((v) => v > 0).length;
-    if (serviceCount === 0) {
-      errs.services = 'Select at least one service and set a quantity';
-    }
+    if (serviceCount === 0) errs.services = 'Select at least one service and set a quantity';
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -188,9 +180,7 @@ export default function FormEntryView({ entry, onBack, onDirty, prefillData }) {
           <CheckCircle size={34} className="text-white" />
         </div>
         <h3 className="mb-2 text-lg font-bold text-slate-800">Form submitted</h3>
-        <p className="mb-8 text-sm text-slate-500">
-          Your entry has been captured successfully.
-        </p>
+        <p className="mb-8 text-sm text-slate-500">Your entry has been captured successfully.</p>
         <button
           onClick={onBack}
           className="rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-6 py-2.5 text-sm font-medium text-white shadow-lg shadow-indigo-500/25 hover:from-indigo-700 hover:to-violet-700 transition-all"
@@ -203,7 +193,6 @@ export default function FormEntryView({ entry, onBack, onDirty, prefillData }) {
 
   return (
     <div className="mx-auto max-w-3xl">
-      {/* Close button */}
       <div className="flex justify-end mb-2">
         <button
           onClick={onBack}
@@ -214,8 +203,8 @@ export default function FormEntryView({ entry, onBack, onDirty, prefillData }) {
         </button>
       </div>
 
-      {/* Progress bar */}
-      <div className="glass-card rounded-2xl p-5 mb-6">
+      {/* Progress */}
+      <div className="glass-card rounded-2xl p-4 sm:p-5 mb-6">
         <div className="mb-3 flex items-center justify-between">
           <p className="text-xs font-medium text-slate-500">
             Step {step} of 3 — {STEP_LABELS[step - 1]}
@@ -233,11 +222,7 @@ export default function FormEntryView({ entry, onBack, onDirty, prefillData }) {
             <span
               key={label}
               className={`text-[11px] font-medium transition-colors ${
-                i + 1 === step
-                  ? 'text-indigo-600'
-                  : i + 1 < step
-                  ? 'text-slate-400'
-                  : 'text-slate-300'
+                i + 1 === step ? 'text-indigo-600' : i + 1 < step ? 'text-slate-400' : 'text-slate-300'
               }`}
             >
               {label}
@@ -246,16 +231,17 @@ export default function FormEntryView({ entry, onBack, onDirty, prefillData }) {
         </div>
       </div>
 
-      {/* ── Step 1: Service details ── */}
+      {/* Step 1 */}
       {step === 1 && (
-        <div className="glass-card rounded-2xl p-6">
+        <div className="glass-card rounded-2xl p-4 sm:p-6">
           <h3 className="mb-5 flex items-center gap-2 text-sm font-semibold text-slate-800">
             <div className="rounded-lg bg-gradient-to-br from-indigo-500 to-blue-500 p-1.5">
               <Building size={16} className="text-white" />
             </div>
             Service details
           </h3>
-          <div className="grid grid-cols-2 gap-4">
+          {/* Stack fields on mobile */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <label className="text-xs font-medium text-slate-600">
               Service point
               <select
@@ -279,7 +265,8 @@ export default function FormEntryView({ entry, onBack, onDirty, prefillData }) {
                 ))}
               </select>
             </label>
-            <label className="col-span-2 text-xs font-medium text-slate-600">
+            {/* Full width on all screens */}
+            <label className="col-span-1 sm:col-span-2 text-xs font-medium text-slate-600">
               Indicator
               <select
                 className={`mt-1 w-full rounded-xl border bg-white/70 backdrop-blur px-3 py-2.5 text-sm focus:outline-none focus:ring-4 ${
@@ -297,8 +284,7 @@ export default function FormEntryView({ entry, onBack, onDirty, prefillData }) {
               </select>
               {errors.indicator && (
                 <p className="mt-1 flex items-center gap-1 text-xs text-red-500">
-                  <AlertCircle size={12} />
-                  {errors.indicator}
+                  <AlertCircle size={12} /> {errors.indicator}
                 </p>
               )}
             </label>
@@ -314,18 +300,18 @@ export default function FormEntryView({ entry, onBack, onDirty, prefillData }) {
         </div>
       )}
 
-      {/* ── Step 2: Participant breakdown ── */}
+      {/* Step 2 */}
       {step === 2 && (
         <>
-          {/* Gender */}
-          <div className="glass-card rounded-2xl p-6 mb-4">
+          {/* Gender — stack on mobile */}
+          <div className="glass-card rounded-2xl p-4 sm:p-6 mb-4">
             <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold text-slate-800">
               <div className="rounded-lg bg-gradient-to-br from-violet-500 to-purple-500 p-1.5">
                 <Users size={16} className="text-white" />
               </div>
               Gender breakdown
             </h3>
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
               {[
                 ['Number of males', 'male'],
                 ['Number of females', 'female'],
@@ -348,21 +334,20 @@ export default function FormEntryView({ entry, onBack, onDirty, prefillData }) {
             </div>
             {totalParticipants > 0 && (
               <p className="mt-4 text-xs font-medium text-slate-500">
-                Total participants:{' '}
-                <span className="text-slate-700 font-semibold">{totalParticipants}</span>
+                Total participants: <span className="text-slate-700 font-semibold">{totalParticipants}</span>
               </p>
             )}
           </div>
 
-          {/* Age groups */}
-          <div className="glass-card rounded-2xl p-6 mb-4">
+          {/* Age groups — 2 cols mobile, 4 on sm+ */}
+          <div className="glass-card rounded-2xl p-4 sm:p-6 mb-4">
             <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold text-slate-800">
               <div className="rounded-lg bg-gradient-to-br from-amber-500 to-orange-500 p-1.5">
                 <PieChart size={16} className="text-white" />
               </div>
               Age groups
             </h3>
-            <div className="grid grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
               {[
                 ['0 – 18 yrs', 'age0_18'],
                 ['19 – 35 yrs', 'age19_35'],
@@ -399,15 +384,15 @@ export default function FormEntryView({ entry, onBack, onDirty, prefillData }) {
             )}
           </div>
 
-          {/* Services */}
-          <div className="glass-card rounded-2xl p-6 mb-6">
+          {/* Services — 1 col mobile, 2 on sm+ */}
+          <div className="glass-card rounded-2xl p-4 sm:p-6 mb-6">
             <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold text-slate-800">
               <div className="rounded-lg bg-gradient-to-br from-emerald-500 to-teal-500 p-1.5">
                 <ListChecks size={16} className="text-white" />
               </div>
               Services rendered
             </h3>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
               {SERVICE_OPTIONS.map((svc) => {
                 const count = form.services[svc] || 0;
                 const selected = count > 0;
@@ -429,10 +414,7 @@ export default function FormEntryView({ entry, onBack, onDirty, prefillData }) {
                         value={count}
                         onChange={(newVal) => {
                           onDirty?.();
-                          update('services', {
-                            ...form.services,
-                            [svc]: newVal,
-                          });
+                          update('services', { ...form.services, [svc]: newVal });
                         }}
                       />
                     </div>
@@ -464,9 +446,9 @@ export default function FormEntryView({ entry, onBack, onDirty, prefillData }) {
         </>
       )}
 
-      {/* ── Step 3: Review ── */}
+      {/* Step 3 */}
       {step === 3 && (
-        <div className="glass-card rounded-2xl p-6">
+        <div className="glass-card rounded-2xl p-4 sm:p-6">
           <h3 className="mb-5 text-sm font-semibold text-slate-800">Review your entry</h3>
           <dl className="divide-y divide-slate-100 text-sm">
             {[

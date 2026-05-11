@@ -17,18 +17,21 @@ export default function App() {
   const [editingEntry, setEditingEntry] = useState(null);
   const [formDirty, setFormDirty] = useState(false);
   const [prefillData, setPrefillData] = useState(null);
+  const [pendingNav, setPendingNav] = useState(null);
 
-  // Modal state for unsaved changes
-  const [pendingNav, setPendingNav] = useState(null); // { id, entry }
+  // Mobile sidebar state
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const toggleSidebar = () => setIsSidebarOpen(prev => !prev);
+  const closeSidebar = () => setIsSidebarOpen(false);
 
   const navigateTo = useCallback(
     (id, entry = null) => {
-      // If leaving the form and it's dirty, ask for confirmation via modal
       if (screen === 'form' && formDirty && id !== 'form') {
         setPendingNav({ id, entry });
         return;
       }
       doNavigate(id, entry);
+      closeSidebar(); // close sidebar on navigation (mobile)
     },
     [screen, formDirty]
   );
@@ -47,14 +50,9 @@ export default function App() {
     }
   };
 
-  const handleModalCancel = () => {
-    setPendingNav(null);
-  };
-
+  const handleModalCancel = () => setPendingNav(null);
   const handleEntryClick = (entry) => navigateTo('form', entry);
-
   const handleChatPrefill = (data) => setPrefillData(data);
-
   const handleOpenForm = () => {
     setScreen('form');
     setEditingEntry(null);
@@ -65,15 +63,24 @@ export default function App() {
 
   return (
     <DataProvider>
-      <div className="flex h-screen min-h-[700px] bg-gray-50 text-sm">
-        <Sidebar activeScreen={screen} onNavigate={navigateTo} />
-        <div className="flex flex-1 flex-col overflow-hidden">
+      <div className="flex h-screen min-h-[700px] bg-gray-50 text-sm overflow-hidden">
+        {/* Sidebar overlay on mobile, static on desktop */}
+        <Sidebar
+          activeScreen={screen}
+          onNavigate={navigateTo}
+          isOpen={isSidebarOpen}
+          onClose={closeSidebar}
+        />
+
+        <div className="flex-1 flex flex-col overflow-hidden relative">
           <Topbar
             pageTitle={pageTitle}
             breadcrumb={breadcrumb}
             onNewEntry={() => navigateTo('form')}
+            onToggleSidebar={toggleSidebar}
           />
-          <div className="flex-1 overflow-y-auto p-6">
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+            {/* screens */}
             {screen === 'capture' && (
               <CaptureView
                 onNewEntry={() => navigateTo('form')}
@@ -101,7 +108,6 @@ export default function App() {
 
       <ChatAssistant onFillForm={handleChatPrefill} onOpenForm={handleOpenForm} />
 
-      {/* Unsaved changes modal */}
       <ConfirmModal
         isOpen={!!pendingNav}
         onConfirm={handleModalConfirm}
