@@ -3,11 +3,28 @@ import { useData } from '../context/DataContext';
 import CommentsView from './CommentsView';
 import StatusBadge from './StatusBadge';
 import { Users, ShieldCheck, Heart, FileCheck } from 'lucide-react';
+import { StatsRowSkeleton, TabsSkeleton, TableSkeleton } from './Skeletons';
 
 export default function CaptureView({ onNewEntry, onEntryClick }) {
-  const { entries } = useData();
+  const { entries, loading } = useData();
   const [activeTab, setActiveTab] = useState('all');
 
+  // ---------- Loading skeleton ----------
+  if (loading) {
+    return (
+      <div>
+        <TabsSkeleton />
+        <StatsRowSkeleton />
+        <div className="mb-3 flex items-center justify-between">
+          <div className="h-4 w-28 rounded bg-slate-200/70 animate-pulse"></div>
+          <div className="h-7 w-16 rounded bg-slate-200/70 animate-pulse"></div>
+        </div>
+        <TableSkeleton rows={4} cols={6} />
+      </div>
+    );
+  }
+
+  // ---------- Real content ----------
   const stats = [
     {
       label: 'Family Preservation',
