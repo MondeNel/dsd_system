@@ -8,6 +8,7 @@ import DashboardView from './components/DashboardView';
 import ReportsView from './components/ReportsView';
 import ChatAssistant from './components/ChatAssistant';
 import CommentsScreen from './components/CommentsScreen';
+import ConfirmModal from './components/ConfirmModal';
 import { DataProvider } from './context/DataContext';
 import { SCREEN_TITLES } from './constants/index';
 
@@ -17,27 +18,42 @@ export default function App() {
   const [formDirty, setFormDirty] = useState(false);
   const [prefillData, setPrefillData] = useState(null);
 
+  // Modal state for unsaved changes
+  const [pendingNav, setPendingNav] = useState(null); // { id, entry }
+
   const navigateTo = useCallback(
     (id, entry = null) => {
+      // If leaving the form and it's dirty, ask for confirmation via modal
       if (screen === 'form' && formDirty && id !== 'form') {
-        const confirmed = window.confirm(
-          'You have unsaved changes. Leave anyway? Your draft will be saved.'
-        );
-        if (!confirmed) return;
+        setPendingNav({ id, entry });
+        return;
       }
-      setScreen(id);
-      setFormDirty(false);
-      if (id === 'form') setEditingEntry(entry);
-      else setEditingEntry(null);
+      doNavigate(id, entry);
     },
     [screen, formDirty]
   );
 
+  const doNavigate = (id, entry = null) => {
+    setScreen(id);
+    setFormDirty(false);
+    setPendingNav(null);
+    if (id === 'form') setEditingEntry(entry);
+    else setEditingEntry(null);
+  };
+
+  const handleModalConfirm = () => {
+    if (pendingNav) {
+      doNavigate(pendingNav.id, pendingNav.entry);
+    }
+  };
+
+  const handleModalCancel = () => {
+    setPendingNav(null);
+  };
+
   const handleEntryClick = (entry) => navigateTo('form', entry);
 
-  const handleChatPrefill = (data) => {
-    setPrefillData(data);
-  };
+  const handleChatPrefill = (data) => setPrefillData(data);
 
   const handleOpenForm = () => {
     setScreen('form');
@@ -76,16 +92,22 @@ export default function App() {
               />
             )}
             {screen === 'inbox' && <InboxView onEntryClick={handleEntryClick} />}
-            {screen === 'comments' && <CommentsScreen />}  {/* now works */}
+            {screen === 'comments' && <CommentsScreen />}
             {screen === 'dashboard' && <DashboardView onEntryClick={handleEntryClick} />}
             {screen === 'reports' && <ReportsView />}
           </div>
         </div>
       </div>
 
-      <ChatAssistant
-        onFillForm={handleChatPrefill}
-        onOpenForm={handleOpenForm}
+      <ChatAssistant onFillForm={handleChatPrefill} onOpenForm={handleOpenForm} />
+
+      {/* Unsaved changes modal */}
+      <ConfirmModal
+        isOpen={!!pendingNav}
+        onConfirm={handleModalConfirm}
+        onCancel={handleModalCancel}
+        title="You have unsaved changes"
+        message="Leave anyway? Your draft will be saved automatically."
       />
     </DataProvider>
   );
