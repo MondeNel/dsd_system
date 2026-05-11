@@ -15,7 +15,7 @@ import { SCREEN_TITLES } from './constants/index';
 function AppInner() {
   const [screen, setScreen] = useState('dashboard');
   const [editingEntry, setEditingEntry] = useState(null);
-  const [startStep, setStartStep] = useState(undefined);  // <-- new
+  const [startStep, setStartStep] = useState(undefined);
   const [formDirty, setFormDirty] = useState(false);
   const [prefillData, setPrefillData] = useState(null);
   const [pendingNav, setPendingNav] = useState(null);
@@ -27,7 +27,7 @@ function AppInner() {
   const closeSidebar = () => setIsSidebarOpen(false);
 
   const navigateTo = useCallback(
-    (id, entry = null, step = undefined) => {   // step added
+    (id, entry = null, step = undefined) => {
       if (screen === 'form' && formDirty && id !== 'form') {
         setPendingNav({ id, entry, step });
         return;
@@ -44,14 +44,13 @@ function AppInner() {
     setPendingNav(null);
     if (id === 'form') {
       setEditingEntry(entry);
-      setStartStep(step);   // store the desired start step
+      setStartStep(step);
     } else {
       setEditingEntry(null);
       setStartStep(undefined);
     }
   };
 
-  // Clear global filter when dashboard is shown
   useEffect(() => {
     if (screen === 'dashboard') {
       clearFilter();
@@ -64,10 +63,7 @@ function AppInner() {
     }
   };
   const handleModalCancel = () => setPendingNav(null);
-
-  // Accept an optional start step (default undefined will use the form's logic)
   const handleEntryClick = (entry, step) => navigateTo('form', entry, step);
-
   const handleChatPrefill = (data) => setPrefillData(data);
   const handleOpenForm = () => {
     setScreen('form');
@@ -75,7 +71,6 @@ function AppInner() {
     setFormDirty(false);
     setStartStep(undefined);
   };
-
   const handleQuickFilter = (status) => {
     clearFilter();
     if (status && status !== 'all') {
@@ -83,7 +78,6 @@ function AppInner() {
     }
     setScreen('capture');
   };
-
   const handleChartFilter = (filterData) => {
     clearFilter();
     if (filterData) {
@@ -95,7 +89,7 @@ function AppInner() {
   const [pageTitle, breadcrumb] = SCREEN_TITLES[screen] || ['', ''];
 
   return (
-    <div className="flex h-screen min-h-[700px] bg-gray-50 text-sm overflow-hidden">
+    <div className="flex h-screen min-h-[700px] bg-gray-50 dark:bg-slate-900 text-sm overflow-hidden">
       <Sidebar activeScreen={screen} onNavigate={navigateTo} isOpen={isSidebarOpen} onClose={closeSidebar} />
 
       <div className="flex-1 flex flex-col overflow-hidden relative">
@@ -116,7 +110,7 @@ function AppInner() {
             <FormEntryView
               entry={editingEntry}
               prefillData={prefillData}
-              startStep={startStep}         // <-- pass startStep
+              startStep={startStep}
               onBack={() => {
                 setPrefillData(null);
                 navigateTo('capture');

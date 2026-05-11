@@ -1,391 +1,289 @@
-import { useState } from 'react';
-import {
-  MessageCircle,
-  X,
-  Sparkles,
-  ChevronRight,
-  ChevronLeft,
-  Check,
-  Upload,
-  FileText,
-  ClipboardList,
-} from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { MessageCircle, X, Send, Bot, User, Sparkles, ChevronDown } from 'lucide-react';
 import { INDICATORS, SERVICE_OPTIONS } from '../constants';
-import StepperInput from './StepperInput';
+
+const SYSTEM_PROMPT = `You are an EME (Electronic Monitoring & Evaluation) assistant for South Africa's Department of Social Development. Your job is to help social workers fill in monthly data capture forms through conversation.
+
+When a user describes their data in natural language, extract and return a JSON object with these fields (only include fields mentioned):
+{
+  "indicator": one of ${JSON.stringify(INDICATORS)},
+  "reportingMonth": e.g. "April 2026",
+  "servicePoint": service point name if mentioned,
+  "male": number,
+  "female": number,
+  "age0_18": number of people aged 0-18,
+  "age19_35": number of people aged 19-35,
+  "age36_59": number of people aged 36-59,
+  "age60plus": number of people aged 60+,
+  "services": object where keys are from ${JSON.stringify(SERVICE_OPTIONS)} and values are counts
+}
+
+IMPORTANT RULES:
+1. Always respond with a friendly conversational message first.
+2. At the end of your response, if you extracted any form data, append a JSON block wrapped in <FORM_DATA> and </FORM_DATA> tags.
+3. If the total of male+female doesn't match the age group totals, flag this politely.
+4. If information is ambiguous or missing, ask a specific follow-up question.
+5. Be warm, helpful, and speak plainly — these are busy field workers.
+6. Keep responses concise — 2-3 sentences max before the data block.
+
+Example response:
+"Got it! I've pulled out the details from what you said. Please review and confirm below.
+<FORM_DATA>{"indicator":"Family Preservation Mediation","male":5,"female":8,"age19_35":7,"age36_59":6}</FORM_DATA>"`;
 
 export default function ChatAssistant({ onFillForm, onOpenForm }) {
-  const [isOpen, setIsOpen] = useState(false);
-  const [mode, setMode] = useState(null);
-  const [step, setStep] = useState(0);
-  const [uploadMessage, setUploadMessage] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [messages, setMessages] = useState([
+    {
+      id: '1',
+      role: 'assistant',
+      text: "Hi! I'm your EME assistant. Tell me about your data in plain language — like \"I captured 12 family preservation sessions this month, 5 males and 7 females\" — and I'll fill in the form for you.",
+      formData: null,
+    },
+  ]);
+  const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [extractedData, setExtractedData] = useState(null);
+  const bottomRef = useRef(null);
+  const inputRef = useRef(null);
 
-  const [indicator, setIndicator] = useState('');
-  const [male, setMale] = useState(0);
-  const [female, setFemale] = useState(0);
-  const [ages, setAges] = useState({ age0_18: 0, age19_35: 0, age36_59: 0, age60plus: 0 });
-  const [services, setServices] = useState(
-    Object.fromEntries(SERVICE_OPTIONS.map((s) => [s, 0]))
-  );
-  const [reportingMonth, setReportingMonth] = useState('April 2026');
+  useEffect(() => {
+    if (open) {
+      bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+      inputRef.current?.focus();
+    }
+  }, [open, messages]);
 
-  // Reset everything
-  const reset = () => {
-    setMode(null);
-    setStep(0);
-    setUploadMessage(false);
-    setIndicator('');
-    setMale(0);
-    setFemale(0);
-    setAges({ age0_18: 0, age19_35: 0, age36_59: 0, age60plus: 0 });
-    setServices(Object.fromEntries(SERVICE_OPTIONS.map((s) => [s, 0])));
-    setReportingMonth('April 2026');
+  const sendMessage = async () => {
+    const text = input.trim();
+    if (!text || loading) return;
+    setInput('');
+
+    const userMsg = { id: Date.now().toString(), role: 'user', text, formData: null };
+    const history = [...messages, userMsg];
+    setMessages(history);
+    setLoading(true);
+
+    try {
+      const apiMessages = history
+        .filter((m) => m.role !== 'system')
+        .map((m) => ({ role: m.role, content: m.text }));
+
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 1000,
+          system: SYSTEM_PROMPT,
+          messages: apiMessages,
+        }),
+      });
+
+      const data = await res.json();
+      const raw = data.content?.[0]?.text || "Sorry, I couldn't process that. Please try again.";
+
+      // Extract JSON from <FORM_DATA> tags
+      const match = raw.match(/<FORM_DATA>([\s\S]*?)<\/FORM_DATA>/);
+      let parsed = null;
+      let displayText = raw.replace(/<FORM_DATA>[\s\S]*?<\/FORM_DATA>/, '').trim();
+
+      if (match) {
+        try {
+          parsed = JSON.parse(match[1].trim());
+          setExtractedData(parsed);
+        } catch {
+          // JSON parse failed — show raw text
+        }
+      }
+
+      setMessages((prev) => [
+        ...prev,
+        { id: Date.now().toString(), role: 'assistant', text: displayText, formData: parsed },
+      ]);
+    } catch (err) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: Date.now().toString(),
+          role: 'assistant',
+          text: 'Something went wrong connecting to the assistant. Please try again.',
+          formData: null,
+        },
+      ]);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleOpen = () => { reset(); setIsOpen(true); };
-  const handleClose = () => { setIsOpen(false); reset(); };
-
-  const totalParticipants = male + female;
-  const ageTotal = Object.values(ages).reduce((a, b) => a + b, 0);
-
-  const handleNext = () => {
-    if (step === 1 && !indicator) return;
-    if (step === 2 && totalParticipants === 0) return;
-    if (step === 3 && ageTotal !== totalParticipants) return;
-    setStep((s) => s + 1);
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
   };
-
-  const handleBack = () => setStep((s) => s - 1);
 
   const handleFillForm = () => {
-    onFillForm({ indicator, male, female, ...ages, services, reportingMonth });
-    onOpenForm();
-    handleClose();
-  };
-
-  const handleServiceToggle = (name) => {
-    setServices((prev) => ({ ...prev, [name]: prev[name] > 0 ? 0 : 1 }));
-  };
-
-  const canGoNext = () => {
-    if (step === 1) return !!indicator;
-    if (step === 2) return totalParticipants > 0;
-    if (step === 3) return ageTotal === totalParticipants;
-    return true;
+    if (extractedData) {
+      onFillForm(extractedData);
+      onOpenForm();
+      setOpen(false);
+      setExtractedData(null);
+    }
   };
 
   return (
     <>
-      {!isOpen && (
-        <button
-          onClick={handleOpen}
-          className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-500/30 hover:shadow-xl hover:scale-105 transition-all"
-        >
-          <MessageCircle size={24} />
-        </button>
-      )}
+      {/* FAB */}
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className={`fixed bottom-6 right-6 z-50 flex h-13 w-13 items-center justify-center rounded-full shadow-lg transition-all duration-200 ${
+          open
+            ? 'bg-gray-700 hover:bg-gray-800'
+            : 'bg-emerald-700 hover:bg-emerald-800'
+        }`}
+        style={{ height: 52, width: 52 }}
+        title="AI Assistant"
+      >
+        {open ? (
+          <X size={20} className="text-white" />
+        ) : (
+          <MessageCircle size={22} className="text-white" />
+        )}
+      </button>
 
-      {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4">
-          {/* Darker backdrop with blur */}
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={handleClose}></div>
+      {/* Chat panel */}
+      {open && (
+        <div className="fixed bottom-20 right-6 z-50 flex w-[360px] flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-2xl">
+          {/* Header */}
+          <div className="flex items-center gap-3 border-b border-gray-100 bg-emerald-700 px-4 py-3">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-600">
+              <Sparkles size={15} className="text-white" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-medium text-white">EME Assistant</p>
+              <p className="text-[11px] text-emerald-200">Autofills forms from natural language</p>
+            </div>
+            <button onClick={() => setOpen(false)}>
+              <ChevronDown size={18} className="text-emerald-200 hover:text-white" />
+            </button>
+          </div>
 
-          {/* Solid modal, flex column to keep footer visible */}
-          <div className="relative z-10 w-full max-w-xl sm:max-w-2xl mx-auto rounded-2xl shadow-2xl overflow-hidden
-            bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700
-            max-h-[90vh] flex flex-col">
+          {/* Messages */}
+          <div className="flex max-h-80 flex-col gap-3 overflow-y-auto p-4">
+            {messages.map((msg) => (
+              <div
+                key={msg.id}
+                className={`flex gap-2 ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}
+              >
+                <div
+                  className={`flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-[11px] ${
+                    msg.role === 'user'
+                      ? 'bg-emerald-100 text-emerald-700'
+                      : 'bg-gray-100 text-gray-600'
+                  }`}
+                >
+                  {msg.role === 'user' ? <User size={13} /> : <Bot size={13} />}
+                </div>
+                <div className={`max-w-[80%] ${msg.role === 'user' ? 'items-end' : 'items-start'} flex flex-col gap-1.5`}>
+                  <div
+                    className={`rounded-xl px-3 py-2 text-sm leading-relaxed ${
+                      msg.role === 'user'
+                        ? 'bg-emerald-700 text-white'
+                        : 'bg-gray-100 text-gray-800'
+                    }`}
+                  >
+                    {msg.text}
+                  </div>
 
-            {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
-              <div className="flex items-center gap-3">
-                <Sparkles size={20} className="text-indigo-600" />
-                <h3 className="text-base font-semibold text-slate-800 dark:text-slate-100">Form Assistant</h3>
+                  {/* Extracted data preview card */}
+                  {msg.formData && (
+                    <div className="w-full rounded-lg border border-emerald-200 bg-emerald-50 p-3">
+                      <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-emerald-700">
+                        Extracted data
+                      </p>
+                      <dl className="space-y-1">
+                        {Object.entries(msg.formData).map(([key, val]) => {
+                          if (key === 'services') {
+                            const active = Object.entries(val).filter(([, v]) => v > 0);
+                            if (!active.length) return null;
+                            return (
+                              <div key={key} className="flex justify-between text-xs">
+                                <dt className="text-gray-500">Services</dt>
+                                <dd className="text-right text-gray-800">
+                                  {active.map(([k, v]) => `${k} (${v})`).join(', ')}
+                                </dd>
+                              </div>
+                            );
+                          }
+                          const labels = {
+                            indicator: 'Indicator',
+                            reportingMonth: 'Month',
+                            servicePoint: 'Service point',
+                            male: 'Males',
+                            female: 'Females',
+                            age0_18: 'Age 0–18',
+                            age19_35: 'Age 19–35',
+                            age36_59: 'Age 36–59',
+                            age60plus: 'Age 60+',
+                          };
+                          return (
+                            <div key={key} className="flex justify-between gap-2 text-xs">
+                              <dt className="text-gray-500">{labels[key] || key}</dt>
+                              <dd className="text-right font-medium text-gray-800">
+                                {String(val)}
+                              </dd>
+                            </div>
+                          );
+                        })}
+                      </dl>
+                      <button
+                        onClick={handleFillForm}
+                        className="mt-3 w-full rounded-md bg-emerald-700 py-1.5 text-xs font-medium text-white hover:bg-emerald-800"
+                      >
+                        Fill form with this data →
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
-              <button onClick={handleClose} className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-400">
-                <X size={20} />
+            ))}
+
+            {loading && (
+              <div className="flex gap-2">
+                <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-gray-100">
+                  <Bot size={13} className="text-gray-600" />
+                </div>
+                <div className="flex items-center gap-1 rounded-xl bg-gray-100 px-3 py-2">
+                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-gray-400" style={{ animationDelay: '0ms' }} />
+                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-gray-400" style={{ animationDelay: '150ms' }} />
+                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-gray-400" style={{ animationDelay: '300ms' }} />
+                </div>
+              </div>
+            )}
+            <div ref={bottomRef} />
+          </div>
+
+          {/* Input */}
+          <div className="border-t border-gray-100 p-3">
+            <div className="flex gap-2">
+              <textarea
+                ref={inputRef}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="e.g. 'I captured 8 family preservation sessions, 3 male 5 female...'"
+                rows={2}
+                className="flex-1 resize-none rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-200"
+              />
+              <button
+                onClick={sendMessage}
+                disabled={!input.trim() || loading}
+                className="flex h-10 w-10 flex-shrink-0 items-center justify-center self-end rounded-lg bg-emerald-700 text-white hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <Send size={15} />
               </button>
             </div>
-
-            {/* Progress dots – always show all 5 with labels */}
-            {mode === 'manual' && step > 0 && step < 6 && (
-              <div className="flex justify-center gap-2 px-6 py-3 bg-slate-50 dark:bg-slate-900/50">
-                {['Indicator', 'Gender', 'Age', 'Services', 'Month'].map((label, i) => (
-                  <div
-                    key={label}
-                    className={`h-2 rounded-full transition-all ${
-                      i + 1 <= step
-                        ? 'bg-indigo-500 w-8'
-                        : 'bg-slate-300 dark:bg-slate-600 w-5'
-                    }`}
-                    title={label}
-                  />
-                ))}
-              </div>
-            )}
-
-            {/* Flexible content area */}
-            <div className="flex-1 px-6 py-5 overflow-y-auto space-y-5">
-              {/* ── Start screen ── */}
-              {step === 0 && !mode && (
-                <div className="space-y-5">
-                  <p className="text-base font-medium text-slate-700 dark:text-slate-200">How would you like to create this entry?</p>
-                  <button
-                    onClick={() => { setMode('manual'); setStep(1); }}
-                    className="w-full flex items-center gap-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 px-5 py-4 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-600 transition"
-                  >
-                    <FileText size={20} className="text-indigo-500" /> Fill manually
-                  </button>
-                  <button
-                    onClick={() => setUploadMessage(true)}
-                    className="w-full flex items-center gap-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 px-5 py-4 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-600 transition"
-                  >
-                    <Upload size={20} className="text-indigo-500" /> Upload a file (PDF or image)
-                  </button>
-                  {uploadMessage && (
-                    <div className="rounded-xl bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-700 p-5 text-center">
-                      <Sparkles size={22} className="text-amber-500 mx-auto mb-2" />
-                      <p className="text-sm font-medium text-amber-800 dark:text-amber-200">ML‑powered document reading coming soon</p>
-                      <p className="text-xs text-amber-600 dark:text-amber-300 mt-2">
-                        A future update will automatically extract data from your PDFs and handwritten notes — saving you even more time.
-                      </p>
-                      <button
-                        onClick={() => setUploadMessage(false)}
-                        className="mt-3 text-xs text-amber-700 dark:text-amber-400 underline hover:text-amber-900 dark:hover:text-amber-300"
-                      >
-                        Continue with manual entry
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Step 1 – Indicator */}
-              {mode === 'manual' && step === 1 && (
-                <div>
-                  <p className="text-base font-medium text-slate-700 dark:text-slate-200 mb-4">Which indicator are you reporting on?</p>
-                  <div className="flex flex-wrap gap-3">
-                    {INDICATORS.map((ind) => (
-                      <button
-                        key={ind}
-                        onClick={() => setIndicator(ind)}
-                        className={`px-4 py-3 rounded-lg text-sm font-medium transition ${
-                          indicator === ind ? 'bg-indigo-600 text-white' : 'bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-600'
-                        }`}
-                      >
-                        {ind}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Step 2 – Gender */}
-              {mode === 'manual' && step === 2 && (
-                <div>
-                  <p className="text-base font-medium text-slate-700 dark:text-slate-200 mb-4">How many males and females?</p>
-                  <div className="flex gap-8 justify-center flex-wrap">
-                    <div className="text-center">
-                      <p className="text-sm text-slate-500 dark:text-slate-400 mb-3">Males</p>
-                      <StepperInput value={male} onChange={setMale} />
-                    </div>
-                    <div className="text-center">
-                      <p className="text-sm text-slate-500 dark:text-slate-400 mb-3">Females</p>
-                      <StepperInput value={female} onChange={setFemale} />
-                    </div>
-                  </div>
-                  {totalParticipants > 0 && (
-                    <p className="mt-4 text-sm text-slate-500 dark:text-slate-400 text-center">Total: {totalParticipants}</p>
-                  )}
-                </div>
-              )}
-
-              {/* Step 3 – Age groups */}
-              {mode === 'manual' && step === 3 && (
-                <div>
-                  <p className="text-base font-medium text-slate-700 dark:text-slate-200 mb-4">Age breakdown (total must be {totalParticipants})</p>
-                  <div className="grid grid-cols-2 gap-4">
-                    {[
-                      ['0-18 yrs', 'age0_18'],
-                      ['19-35 yrs', 'age19_35'],
-                      ['36-59 yrs', 'age36_59'],
-                      ['60+ yrs', 'age60plus'],
-                    ].map(([label, key]) => (
-                      <div key={key} className="flex items-center justify-between bg-white dark:bg-slate-700 rounded-xl px-4 py-3">
-                        <span className="text-sm text-slate-600 dark:text-slate-300">{label}</span>
-                        <StepperInput value={ages[key]} onChange={(val) => setAges((prev) => ({ ...prev, [key]: val }))} />
-                      </div>
-                    ))}
-                  </div>
-                  <div className="mt-4 text-sm text-slate-500 dark:text-slate-400 text-center">
-                    Age total: {ageTotal} / {totalParticipants}
-                    {ageTotal === totalParticipants && totalParticipants > 0 && (
-                      <span className="ml-2 text-emerald-500 dark:text-emerald-400 inline-flex items-center gap-1"><Check size={14} /> Match</span>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Step 4 – Services */}
-              {/* Step 4 – Services */}
-{mode === 'manual' && step === 4 && (
-  <div>
-    <p className="text-base font-medium text-slate-700 dark:text-slate-200 mb-4">
-      Which services were provided?
-    </p>
-    <div className="space-y-3">
-      {SERVICE_OPTIONS.map((svc) => {
-        const selected = services[svc] > 0;
-        return (
-          <div
-            key={svc}
-            onClick={() => handleServiceToggle(svc)}
-            className={`flex items-center justify-between rounded-xl border px-4 py-3 cursor-pointer transition ${
-              selected
-                ? 'border-indigo-300 dark:border-indigo-600 bg-indigo-50 dark:bg-indigo-900/30'
-                : 'border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600'
-            }`}
-          >
-            <span
-              className={`text-sm font-medium ${
-                selected ? 'text-indigo-700 dark:text-indigo-300' : 'text-slate-600 dark:text-slate-300'
-              }`}
-            >
-              {svc}
-            </span>
-            {selected && (
-              <div onClick={(e) => e.stopPropagation()}>
-                <StepperInput
-                  value={services[svc]}
-                  onChange={(val) =>
-                    setServices((prev) => ({ ...prev, [svc]: val }))
-                  }
-                />
-              </div>
-            )}
-          </div>
-        );
-      })}
-    </div>
-  </div>
-)}
-
-              {/* Step 5 – Month */}
-              {mode === 'manual' && step === 5 && (
-                <div>
-                  <p className="text-base font-medium text-slate-700 dark:text-slate-200 mb-4">Reporting month</p>
-                  <select
-                    className="mt-1 w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 px-4 py-3 text-sm text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-400/30"
-                    value={reportingMonth}
-                    onChange={(e) => setReportingMonth(e.target.value)}
-                  >
-                    {['January','February','March','April','May','June',
-                      'July','August','September','October','November','December'].map((m) => (
-                      <option key={m}>{m} 2026</option>
-                    ))}
-                  </select>
-                </div>
-              )}
-
-              {/* Step 6 – Detailed Review */}
-              {mode === 'manual' && step === 6 && (
-                <div className="space-y-6">
-                  <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400">
-                    <ClipboardList size={20} />
-                    <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100">Complete Entry Report</h3>
-                  </div>
-
-                  <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-                    Here is a summary of all the information you have entered. Please review carefully before filling the form.
-                  </p>
-
-                  <div className="rounded-xl bg-white/60 dark:bg-slate-800/60 backdrop-blur p-5 divide-y divide-slate-200/50 dark:divide-slate-700/50 space-y-4">
-                    <div>
-                      <span className="text-xs font-semibold uppercase text-slate-400 dark:text-slate-500">Indicator</span>
-                      <p className="text-base font-medium text-slate-800 dark:text-slate-100">{indicator}</p>
-                    </div>
-
-                    <div className="pt-4">
-                      <span className="text-xs font-semibold uppercase text-slate-400 dark:text-slate-500">Participants</span>
-                      <div className="flex gap-8 mt-2">
-                        <div>
-                          <span className="text-sm text-slate-500 dark:text-slate-400">Males</span>
-                          <p className="text-xl font-bold text-slate-800 dark:text-slate-100">{male}</p>
-                        </div>
-                        <div>
-                          <span className="text-sm text-slate-500 dark:text-slate-400">Females</span>
-                          <p className="text-xl font-bold text-slate-800 dark:text-slate-100">{female}</p>
-                        </div>
-                        <div>
-                          <span className="text-sm text-slate-500 dark:text-slate-400">Total</span>
-                          <p className="text-xl font-bold text-indigo-600 dark:text-indigo-400">{totalParticipants}</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="pt-4">
-                      <span className="text-xs font-semibold uppercase text-slate-400 dark:text-slate-500">Age Distribution</span>
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-2">
-                        {[
-                          ['0-18 yrs', ages.age0_18],
-                          ['19-35 yrs', ages.age19_35],
-                          ['36-59 yrs', ages.age36_59],
-                          ['60+ yrs', ages.age60plus],
-                        ].map(([label, val]) => (
-                          <div key={label} className="text-center">
-                            <p className="text-xs text-slate-500 dark:text-slate-400">{label}</p>
-                            <p className="text-lg font-bold text-slate-800 dark:text-slate-100">{val}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="pt-4">
-                      <span className="text-xs font-semibold uppercase text-slate-400 dark:text-slate-500">Services Provided</span>
-                      {Object.entries(services).filter(([, v]) => v > 0).length > 0 ? (
-                        <ul className="mt-2 space-y-1">
-                          {Object.entries(services)
-                            .filter(([, v]) => v > 0)
-                            .map(([name, count]) => (
-                              <li key={name} className="flex justify-between text-sm">
-                                <span className="text-slate-700 dark:text-slate-300">{name}</span>
-                                <span className="font-medium text-slate-800 dark:text-slate-100">{count}</span>
-                              </li>
-                            ))}
-                        </ul>
-                      ) : (
-                        <p className="text-sm text-slate-400 dark:text-slate-500">No services selected</p>
-                      )}
-                    </div>
-
-                    <div className="pt-4 flex justify-between">
-                      <span className="text-xs font-semibold uppercase text-slate-400 dark:text-slate-500">Reporting Period</span>
-                      <span className="text-sm font-medium text-slate-800 dark:text-slate-100">{reportingMonth}</span>
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={handleFillForm}
-                    className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-6 py-3.5 text-base font-medium text-white shadow-lg shadow-indigo-500/25 hover:from-indigo-700 hover:to-violet-700 transition-all"
-                  >
-                    <Sparkles size={18} /> Fill form with this data
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* Navigation footer – stays visible thanks to flex column */}
-            {mode === 'manual' && step > 0 && step < 6 && (
-              <div className="flex items-center justify-between px-6 py-4 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50">
-                <button onClick={handleBack} disabled={step === 1}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-200 disabled:opacity-30">
-                  <ChevronLeft size={16} /> Back
-                </button>
-                <span className="text-sm text-slate-400 dark:text-slate-500">Step {step} of 5</span>
-                <button onClick={handleNext} disabled={!canGoNext()}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-5 py-2 text-sm font-medium text-white disabled:opacity-40 hover:bg-indigo-700">
-                  Next <ChevronRight size={16} />
-                </button>
-              </div>
-            )}
+            <p className="mt-1.5 text-center text-[10px] text-gray-400">Enter to send · Shift+Enter for new line</p>
           </div>
         </div>
       )}

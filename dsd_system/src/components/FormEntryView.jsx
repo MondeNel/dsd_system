@@ -16,19 +16,20 @@ import StepperInput from './StepperInput';
 
 const STEP_LABELS = ['Service details', 'Participant breakdown', 'Review & submit'];
 
-export default function FormEntryView({ entry, onBack, onDirty, prefillData, startStep }){
+export default function FormEntryView({ entry, onBack, onDirty, prefillData, startStep }) {
   const { addEntry, updateEntry } = useData();
   const isEditing = !!entry;
 
-  const [step, setStep] = useState(1);
   const [errors, setErrors] = useState({});
   const [submitted, setSubmitted] = useState(false);
 
-    const [step, setStep] = useState(() => {
-    if (startStep) return startStep;       // explicit start step from inbox
-    if (entry) return 2;                   // editing existing entry → step 2
-    return 1;                              // new entry → step 1
+  // Single step declaration – uses startStep, entry, or defaults
+  const [step, setStep] = useState(() => {
+    if (startStep) return startStep;        // explicit start step from inbox
+    if (entry) return 2;                    // editing existing entry → step 2
+    return 1;                               // new entry → step 1
   });
+
 
   const [form, setForm] = useState(() => {
     const defaultForm = {
