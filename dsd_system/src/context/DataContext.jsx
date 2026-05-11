@@ -128,6 +128,18 @@ export function DataProvider({ children }) {
 
   const [role, setRole] = useState('officer'); // 'officer' | 'supervisor'
 
+  // Filter state for search / filters
+  const [filter, setFilter] = useState({
+    indicator: '',
+    status: '',
+    dateFrom: '',
+    dateTo: '',
+  });
+
+  // Clear all filters
+  const clearFilter = () =>
+    setFilter({ indicator: '', status: '', dateFrom: '', dateTo: '' });
+
   // Current user info — in a real app this comes from auth
   const currentUser = {
     name: 'Velile Sean',
@@ -141,11 +153,22 @@ export function DataProvider({ children }) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
   }, [entries]);
 
-  // Officers only see their own location; supervisors see all
-  const visibleEntries =
+  // Role‑based filtering
+  const roleFiltered =
     role === 'officer'
       ? entries.filter((e) => e.location === currentUser.location)
       : entries;
+
+  // Apply additional search filters on top of role filter
+  const filteredEntries = roleFiltered.filter((entry) => {
+    if (filter.indicator && entry.indicator !== filter.indicator) return false;
+    if (filter.status && entry.status !== filter.status) return false;
+    if (filter.dateFrom && entry.date < filter.dateFrom) return false;
+    if (filter.dateTo && entry.date > filter.dateTo) return false;
+    return true;
+  });
+
+  const visibleEntries = filteredEntries;
 
   const addEntry = (entry) => {
     const newEntry = { ...entry, id: crypto.randomUUID(), comments: entry.comments || [] };
@@ -189,6 +212,9 @@ export function DataProvider({ children }) {
         role,
         setRole,
         currentUser,
+        filter,
+        setFilter,
+        clearFilter,
         addEntry,
         updateEntry,
         addComment,
