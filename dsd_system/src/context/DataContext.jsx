@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState } from 'react';
 
 const STORAGE_KEY = 'eme_data';
 
-// Initial demo entries
+// Initial demo entries (some from other service points)
 const initialEntries = [
   {
     id: 'e1',
@@ -11,14 +11,14 @@ const initialEntries = [
     addedBy: 'Velile Sean',
     role: 'Social Info Officer',
     location: 'Prieska Siya-Themba',
-    status: 'captured', // captured | pending | inprogress
+    status: 'captured',
     genderMale: 1,
     genderFemale: 2,
     age0_18: 1,
     age19_35: 1,
     age36_59: 1,
     age60plus: 0,
-    services: { mediation: 1, counselling: 0, enrichment: 1, preparation: 0 },
+    services: { 'Mediation service': 1, 'Marriage counselling': 0, 'Marriage enrichment': 1, 'Marriage preparation': 0 },
     comments: [],
   },
   {
@@ -52,7 +52,7 @@ const initialEntries = [
     age19_35: 22,
     age36_59: 15,
     age60plus: 5,
-    services: { mediation: 20, counselling: 12, enrichment: 5, preparation: 8 },
+    services: { 'Mediation service': 20, 'Marriage counselling': 12, 'Marriage enrichment': 5, 'Marriage preparation': 8 },
     comments: [],
   },
   {
@@ -72,6 +72,41 @@ const initialEntries = [
     services: {},
     comments: [],
   },
+  // Extra entries for other locations (visible to supervisor)
+  {
+    id: 'e5',
+    date: '2026-05-10',
+    indicator: 'HIV/AIDS Care & Services — Mar 2026',
+    addedBy: 'Dineo Molefe',
+    role: 'Social Info Officer',
+    location: 'Kuruman Service Point',
+    status: 'captured',
+    genderMale: 12,
+    genderFemale: 15,
+    age0_18: 3,
+    age19_35: 9,
+    age36_59: 10,
+    age60plus: 5,
+    services: { 'Mediation service': 5, 'Marriage counselling': 7 },
+    comments: [],
+  },
+  {
+    id: 'e6',
+    date: '2026-04-28',
+    indicator: 'Family members in Family Preservation Services',
+    addedBy: 'Bongani Nkosi',
+    role: 'Social Info Officer',
+    location: 'De Aar Service Point',
+    status: 'captured',
+    genderMale: 22,
+    genderFemale: 30,
+    age0_18: 8,
+    age19_35: 18,
+    age36_59: 20,
+    age60plus: 6,
+    services: { 'Marriage enrichment': 10, 'Marriage preparation': 5 },
+    comments: [],
+  },
 ];
 
 const DataContext = createContext();
@@ -89,9 +124,16 @@ export function DataProvider({ children }) {
     return initialEntries;
   });
 
+  const [role, setRole] = useState('officer'); // 'officer' or 'supervisor'
+
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
   }, [entries]);
+
+  // Filter entries by role
+  const visibleEntries = role === 'officer'
+    ? entries.filter(e => e.location === 'Prieska Siya-Themba')
+    : entries; // supervisor sees all
 
   const addEntry = (entry) => {
     const newEntry = { ...entry, id: crypto.randomUUID() };
@@ -129,7 +171,15 @@ export function DataProvider({ children }) {
 
   return (
     <DataContext.Provider
-      value={{ entries, addEntry, updateEntry, addComment }}
+      value={{
+        entries: visibleEntries,
+        allEntries: entries, // for reference if needed
+        role,
+        setRole,
+        addEntry,
+        updateEntry,
+        addComment,
+      }}
     >
       {children}
     </DataContext.Provider>

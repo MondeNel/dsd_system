@@ -4,30 +4,30 @@ import {
   Inbox,
   BarChart3,
   HelpCircle,
-  Users,
-  ShieldCheck,
-  Heart,
-  FileCheck,
-  Building,
-  PieChart,
-  ListChecks,
-  ArrowLeft,
-  ArrowRight,
-  Filter,
-  Plus,
+  MessageSquare,
 } from 'lucide-react';
-
-const navItems = [
-  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { id: 'capture', label: 'Form Capture', icon: ClipboardList },
-  { id: 'inbox', label: 'Form Inbox', icon: Inbox },
-  { id: 'reports', label: 'Reports', icon: BarChart3 },
-];
+import { useData } from '../context/DataContext';
 
 export default function Sidebar({ activeScreen, onNavigate }) {
+  const { role } = useData();
+
+  const officerNav = [
+    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'capture', label: 'Form Capture', icon: ClipboardList },
+    { id: 'inbox', label: 'Form Inbox', icon: Inbox },
+  ];
+
+  const supervisorNav = [
+    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'inbox', label: 'Form Inbox', icon: Inbox },
+    { id: 'reports', label: 'Reports', icon: BarChart3 },
+    { id: 'comments', label: 'Comments', icon: MessageSquare },
+  ];
+
+  const navItems = role === 'supervisor' ? supervisorNav : officerNav;
+
   return (
     <aside className="w-55 flex flex-shrink-0 flex-col border-r border-gray-200 bg-white">
-      {/* logo section – unchanged */}
       <div className="border-b border-gray-200 px-4 py-5">
         <h1 className="text-[13px] font-medium leading-tight text-gray-800">
           Electronic Monitoring<br />& Evaluation
@@ -41,7 +41,9 @@ export default function Sidebar({ activeScreen, onNavigate }) {
         </div>
         <div>
           <div className="text-[13px] font-medium text-gray-800">Velile Sean</div>
-          <div className="text-[11px] text-gray-500">Social Info Officer</div>
+          <div className="text-[11px] text-gray-500">
+            {role === 'officer' ? 'Social Info Officer' : 'Supervisor'}
+          </div>
         </div>
       </div>
 
