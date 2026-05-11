@@ -18,13 +18,38 @@ import {
   Pie,
   Cell,
 } from 'recharts';
+import { CardSkeleton, ChartSkeleton, TableSkeleton } from './Skeletons';
 
 const CHART_COLORS = ['#6366f1', '#8b5cf6', '#a78bfa', '#c4b5fd'];
 const PIE_COLORS = ['#10b981', '#f59e0b', '#6366f1'];
 
 export default function DashboardView({ onEntryClick }) {
-  const { entries, role } = useData();
+  const { entries, role, loading } = useData();
 
+  // ---------- Loading skeleton ----------
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        {/* Summary card skeletons */}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <CardSkeleton key={i} />
+          ))}
+        </div>
+
+        {/* Chart skeletons */}
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <ChartSkeleton />
+          <ChartSkeleton />
+        </div>
+
+        {/* Recent activity table skeleton */}
+        <TableSkeleton rows={5} cols={role === 'supervisor' ? 5 : 4} />
+      </div>
+    );
+  }
+
+  // ---------- Real content ----------
   const total = entries.length;
   const captured = entries.filter((e) => e.status === 'captured').length;
   const pending = entries.filter((e) => e.status === 'pending').length;
@@ -104,10 +129,12 @@ export default function DashboardView({ onEntryClick }) {
       {/* Recent activity */}
       <div className="glass-card overflow-hidden rounded-2xl">
         <div className="px-6 py-4 border-b border-white/20">
-          <h3 className="text-sm font-semibold text-slate-800">Recent activity</h3>
-          {role === 'supervisor' && (
-            <span className="ml-2 text-[11px] text-slate-400">All locations</span>
-          )}
+          <h3 className="text-sm font-semibold text-slate-800">
+            Recent activity
+            {role === 'supervisor' && (
+              <span className="ml-2 text-[11px] font-normal text-slate-400">All locations</span>
+            )}
+          </h3>
         </div>
         <table className="w-full">
           <thead className="bg-white/30 text-[11px] font-semibold uppercase text-slate-500">
@@ -115,7 +142,9 @@ export default function DashboardView({ onEntryClick }) {
               <th className="px-6 py-3 text-left">Date</th>
               <th className="px-6 py-3 text-left">Indicator</th>
               <th className="px-6 py-3 text-left">Added by</th>
-              {role === 'supervisor' && <th className="px-6 py-3 text-left">Location</th>}
+              {role === 'supervisor' && (
+                <th className="px-6 py-3 text-left">Location</th>
+              )}
               <th className="px-6 py-3 text-left">Status</th>
             </tr>
           </thead>
@@ -128,9 +157,13 @@ export default function DashboardView({ onEntryClick }) {
               >
                 <td className="px-6 py-3 text-sm text-slate-600">{entry.date}</td>
                 <td className="px-6 py-3 text-sm font-medium text-slate-800">{entry.indicator}</td>
-                <td className="px-6 py-3 text-sm">{entry.addedBy}</td>
-                {role === 'supervisor' && <td className="px-6 py-3 text-sm text-slate-500">{entry.location}</td>}
-                <td className="px-6 py-3"><StatusBadge status={entry.status} /></td>
+                <td className="px-6 py-3 text-sm text-slate-700">{entry.addedBy}</td>
+                {role === 'supervisor' && (
+                  <td className="px-6 py-3 text-sm text-slate-500">{entry.location}</td>
+                )}
+                <td className="px-6 py-3">
+                  <StatusBadge status={entry.status} />
+                </td>
               </tr>
             ))}
             {recent.length === 0 && (
