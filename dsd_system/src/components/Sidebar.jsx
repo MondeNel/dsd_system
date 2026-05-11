@@ -27,30 +27,31 @@ export default function Sidebar({ activeScreen, onNavigate }) {
   const navItems = role === 'supervisor' ? supervisorNav : officerNav;
 
   return (
-    <aside className="w-55 flex flex-shrink-0 flex-col border-r border-gray-200 bg-white">
+    <aside className="flex w-56 flex-shrink-0 flex-col border-r border-gray-200 bg-white">
       <div className="border-b border-gray-200 px-4 py-5">
         <h1 className="text-[13px] font-medium leading-tight text-gray-800">
-          Electronic Monitoring<br />& Evaluation
+          Electronic Monitoring
+          <br />& Evaluation
         </h1>
         <p className="mt-0.5 text-[11px] text-gray-500">DSD — eme.dsd.gov.za</p>
       </div>
 
       <div className="flex items-center gap-3 border-b border-gray-200 px-4 py-3">
-        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-50 text-[11px] font-medium text-emerald-700">
+        <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-emerald-50 text-[11px] font-medium text-emerald-700">
           VS
         </div>
-        <div>
-          <div className="text-[13px] font-medium text-gray-800">Velile Sean</div>
+        <div className="min-w-0">
+          <div className="truncate text-[13px] font-medium text-gray-800">Velile Sean</div>
           <div className="text-[11px] text-gray-500">
             {role === 'officer' ? 'Social Info Officer' : 'Supervisor'}
           </div>
         </div>
       </div>
 
-      <nav className="flex-1 space-y-1 p-2">
-        <div className="px-2 pb-1 pt-2 text-[10px] uppercase tracking-wider text-gray-400">
+      <nav className="flex-1 space-y-0.5 p-2">
+        <p className="px-2 pb-1 pt-2 text-[10px] uppercase tracking-wider text-gray-400">
           Main
-        </div>
+        </p>
         {navItems.map(({ id, label, icon: Icon }) => (
           <button
             key={id}
@@ -61,15 +62,15 @@ export default function Sidebar({ activeScreen, onNavigate }) {
                 : 'text-gray-600'
             }`}
           >
-            <Icon size={16} className="text-current" />
+            <Icon size={16} className="flex-shrink-0" />
             {label}
           </button>
         ))}
-        <div className="px-2 pb-1 pt-4 text-[10px] uppercase tracking-wider text-gray-400">
+        <p className="px-2 pb-1 pt-4 text-[10px] uppercase tracking-wider text-gray-400">
           Support
-        </div>
+        </p>
         <button className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-[13px] text-gray-600 transition-colors hover:bg-gray-100">
-          <HelpCircle size={16} />
+          <HelpCircle size={16} className="flex-shrink-0" />
           Help
         </button>
       </nav>

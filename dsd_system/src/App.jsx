@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import Sidebar from './components/Sidebar';
 import Topbar from './components/Topbar';
 import CaptureView from './components/CaptureView';
@@ -6,29 +6,46 @@ import FormEntryView from './components/FormEntryView';
 import InboxView from './components/InboxView';
 import DashboardView from './components/DashboardView';
 import ReportsView from './components/ReportsView';
+import ChatAssistant from './components/ChatAssistant';
+import CommentsScreen from './components/CommentsScreen';
 import { DataProvider } from './context/DataContext';
-
-const screenTitles = {
-  dashboard: ['Dashboard', 'Overview'],
-  capture: ['Form Capture', 'Prieska Siya-Themba · April 2026'],
-  form: ['New Entry', 'Step 2 of 3 — Participant breakdown'],
-  inbox: ['Form Inbox', 'Submitted forms'],
-  reports: ['Reports', 'Analytics & exports'],
-};
+import { SCREEN_TITLES } from './constants/index';
 
 export default function App() {
-  const [screen, setScreen] = useState('dashboard');  // start on dashboard now
+  const [screen, setScreen] = useState('dashboard');
   const [editingEntry, setEditingEntry] = useState(null);
+  const [formDirty, setFormDirty] = useState(false);
+  const [prefillData, setPrefillData] = useState(null);
 
-  const navigateTo = (id, entry = null) => {
-    setScreen(id);
-    if (id === 'form') setEditingEntry(entry);
-    else setEditingEntry(null);
-  };
+  const navigateTo = useCallback(
+    (id, entry = null) => {
+      if (screen === 'form' && formDirty && id !== 'form') {
+        const confirmed = window.confirm(
+          'You have unsaved changes. Leave anyway? Your draft will be saved.'
+        );
+        if (!confirmed) return;
+      }
+      setScreen(id);
+      setFormDirty(false);
+      if (id === 'form') setEditingEntry(entry);
+      else setEditingEntry(null);
+    },
+    [screen, formDirty]
+  );
 
   const handleEntryClick = (entry) => navigateTo('form', entry);
 
-  const [pageTitle, breadcrumb] = screenTitles[screen] || ['', ''];
+  const handleChatPrefill = (data) => {
+    setPrefillData(data);
+  };
+
+  const handleOpenForm = () => {
+    setScreen('form');
+    setEditingEntry(null);
+    setFormDirty(false);
+  };
+
+  const [pageTitle, breadcrumb] = SCREEN_TITLES[screen] || ['', ''];
 
   return (
     <DataProvider>
@@ -50,15 +67,26 @@ export default function App() {
             {screen === 'form' && (
               <FormEntryView
                 entry={editingEntry}
-                onBack={() => navigateTo('capture')}
+                prefillData={prefillData}
+                onBack={() => {
+                  setPrefillData(null);
+                  navigateTo('capture');
+                }}
+                onDirty={() => setFormDirty(true)}
               />
             )}
-            {screen === 'inbox' && <InboxView />}
+            {screen === 'inbox' && <InboxView onEntryClick={handleEntryClick} />}
+            {screen === 'comments' && <CommentsScreen />}  {/* now works */}
             {screen === 'dashboard' && <DashboardView onEntryClick={handleEntryClick} />}
             {screen === 'reports' && <ReportsView />}
           </div>
         </div>
       </div>
+
+      <ChatAssistant
+        onFillForm={handleChatPrefill}
+        onOpenForm={handleOpenForm}
+      />
     </DataProvider>
   );
 }

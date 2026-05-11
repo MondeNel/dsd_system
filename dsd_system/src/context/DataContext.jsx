@@ -2,7 +2,6 @@ import { createContext, useContext, useEffect, useState } from 'react';
 
 const STORAGE_KEY = 'eme_data';
 
-// Initial demo entries (some from other service points)
 const initialEntries = [
   {
     id: 'e1',
@@ -24,13 +23,13 @@ const initialEntries = [
   {
     id: 'e2',
     date: '2026-05-05',
-    indicator: 'Children with valid foster care orders (Apr 2026)',
+    indicator: 'Children with valid foster care orders',
     addedBy: 'Therosmea',
     role: 'Social Info Officer',
     location: 'Prieska Siya-Themba',
     status: 'pending',
     genderMale: 0,
-    genderFemale: 0,
+    genderFemale: 8,
     age0_18: 8,
     age19_35: 0,
     age36_59: 0,
@@ -41,7 +40,7 @@ const initialEntries = [
   {
     id: 'e3',
     date: '2026-05-02',
-    indicator: 'Family Preservation Mediation Apr 2026',
+    indicator: 'Family Preservation Mediation',
     addedBy: 'Velile Sean',
     role: 'Social Info Officer',
     location: 'Prieska Siya-Themba',
@@ -53,7 +52,15 @@ const initialEntries = [
     age36_59: 15,
     age60plus: 5,
     services: { 'Mediation service': 20, 'Marriage counselling': 12, 'Marriage enrichment': 5, 'Marriage preparation': 8 },
-    comments: [],
+    comments: [
+      {
+        id: 'c1',
+        text: 'Confirmed figures with the field team.',
+        author: 'Velile Sean',
+        role: 'Social Info Officer',
+        date: '2026-05-03',
+      },
+    ],
   },
   {
     id: 'e4',
@@ -72,11 +79,10 @@ const initialEntries = [
     services: {},
     comments: [],
   },
-  // Extra entries for other locations (visible to supervisor)
   {
     id: 'e5',
     date: '2026-05-10',
-    indicator: 'HIV/AIDS Care & Services — Mar 2026',
+    indicator: 'HIV/AIDS Care & Services',
     addedBy: 'Dineo Molefe',
     role: 'Social Info Officer',
     location: 'Kuruman Service Point',
@@ -115,28 +121,34 @@ export function DataProvider({ children }) {
   const [entries, setEntries] = useState(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
-      try {
-        return JSON.parse(stored);
-      } catch {
-        return initialEntries;
-      }
+      try { return JSON.parse(stored); } catch { return initialEntries; }
     }
     return initialEntries;
   });
 
-  const [role, setRole] = useState('officer'); // 'officer' or 'supervisor'
+  const [role, setRole] = useState('officer'); // 'officer' | 'supervisor'
+
+  // Current user info — in a real app this comes from auth
+  const currentUser = {
+    name: 'Velile Sean',
+    initials: 'VS',
+    role: role === 'officer' ? 'Social Info Officer' : 'Supervisor',
+    location: 'Prieska Siya-Themba',
+    servicePoint: 'Prieska Siya-Themba Service Point',
+  };
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
   }, [entries]);
 
-  // Filter entries by role
-  const visibleEntries = role === 'officer'
-    ? entries.filter(e => e.location === 'Prieska Siya-Themba')
-    : entries; // supervisor sees all
+  // Officers only see their own location; supervisors see all
+  const visibleEntries =
+    role === 'officer'
+      ? entries.filter((e) => e.location === currentUser.location)
+      : entries;
 
   const addEntry = (entry) => {
-    const newEntry = { ...entry, id: crypto.randomUUID() };
+    const newEntry = { ...entry, id: crypto.randomUUID(), comments: entry.comments || [] };
     setEntries((prev) => [newEntry, ...prev]);
     return newEntry;
   };
@@ -173,9 +185,10 @@ export function DataProvider({ children }) {
     <DataContext.Provider
       value={{
         entries: visibleEntries,
-        allEntries: entries, // for reference if needed
+        allEntries: entries,
         role,
         setRole,
+        currentUser,
         addEntry,
         updateEntry,
         addComment,
