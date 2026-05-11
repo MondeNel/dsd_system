@@ -17,14 +17,16 @@ const screenTitles = {
 };
 
 export default function App() {
-  const [screen, setScreen] = useState('capture'); // start on capture list
-  const [editingEntry, setEditingEntry] = useState(null); // for form step
+  const [screen, setScreen] = useState('dashboard');  // start on dashboard now
+  const [editingEntry, setEditingEntry] = useState(null);
 
   const navigateTo = (id, entry = null) => {
     setScreen(id);
     if (id === 'form') setEditingEntry(entry);
     else setEditingEntry(null);
   };
+
+  const handleEntryClick = (entry) => navigateTo('form', entry);
 
   const [pageTitle, breadcrumb] = screenTitles[screen] || ['', ''];
 
@@ -39,10 +41,20 @@ export default function App() {
             onNewEntry={() => navigateTo('form')}
           />
           <div className="flex-1 overflow-y-auto p-6">
-            {screen === 'capture' && <CaptureView onNewEntry={() => navigateTo('form')} onEntryClick={(e) => navigateTo('form', e)} />}
-            {screen === 'form' && <FormEntryView entry={editingEntry} onBack={() => navigateTo('capture')} />}
+            {screen === 'capture' && (
+              <CaptureView
+                onNewEntry={() => navigateTo('form')}
+                onEntryClick={handleEntryClick}
+              />
+            )}
+            {screen === 'form' && (
+              <FormEntryView
+                entry={editingEntry}
+                onBack={() => navigateTo('capture')}
+              />
+            )}
             {screen === 'inbox' && <InboxView />}
-            {screen === 'dashboard' && <DashboardView />}
+            {screen === 'dashboard' && <DashboardView onEntryClick={handleEntryClick} />}
             {screen === 'reports' && <ReportsView />}
           </div>
         </div>
