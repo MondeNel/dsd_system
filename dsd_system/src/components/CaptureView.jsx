@@ -21,8 +21,8 @@ export default function CaptureView({ onNewEntry, onEntryClick }) {
         <TabsSkeleton />
         <StatsRowSkeleton />
         <div className="mb-3 flex items-center justify-between">
-          <div className="h-4 w-28 rounded bg-slate-200/70 animate-pulse"></div>
-          <div className="h-7 w-16 rounded bg-slate-200/70 animate-pulse"></div>
+          <div className="h-4 w-28 rounded bg-slate-200/70 dark:bg-slate-700/70 animate-pulse"></div>
+          <div className="h-7 w-16 rounded bg-slate-200/70 dark:bg-slate-700/70 animate-pulse"></div>
         </div>
         <TableSkeleton rows={4} cols={6} />
       </div>
@@ -78,15 +78,15 @@ export default function CaptureView({ onNewEntry, onEntryClick }) {
   return (
     <div>
       {/* Tab bar — scrollable on mobile */}
-      <div className="mb-6 flex border-b border-white/20 overflow-x-auto -mx-1 px-1">
+      <div className="mb-6 flex border-b border-white/20 dark:border-slate-700/30 overflow-x-auto -mx-1 px-1">
         {tabs.map(({ id, label }) => (
           <button
             key={id}
             onClick={() => setActiveTab(id)}
             className={`px-3 sm:px-4 py-2.5 text-[13px] font-medium transition-all relative whitespace-nowrap ${
               activeTab === id
-                ? 'text-indigo-600'
-                : 'text-slate-500 hover:text-slate-700'
+                ? 'text-indigo-600 dark:text-indigo-400'
+                : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
             }`}
           >
             {label}
@@ -102,13 +102,13 @@ export default function CaptureView({ onNewEntry, onEntryClick }) {
         {stats.map(({ label, value, sub, icon: Icon, color }) => (
           <div key={label} className="glass-card rounded-2xl p-3 sm:p-4 transition-all hover:shadow-lg hover:-translate-y-0.5">
             <div className="flex items-start justify-between">
-              <p className="text-xs font-medium text-slate-500">{label}</p>
+              <p className="text-xs font-medium text-slate-500 dark:text-slate-400">{label}</p>
               <div className={`rounded-lg bg-gradient-to-br ${color} p-1.5 sm:p-2`}>
                 <Icon size={14} className="sm:size-16 text-white" />
               </div>
             </div>
-            <p className="mt-2 text-xl sm:text-2xl font-bold text-slate-800">{value}</p>
-            <p className="mt-1 text-[10px] sm:text-[11px] text-slate-400">{sub}</p>
+            <p className="mt-2 text-xl sm:text-2xl font-bold text-slate-800 dark:text-slate-100">{value}</p>
+            <p className="mt-1 text-[10px] sm:text-[11px] text-slate-400 dark:text-slate-500">{sub}</p>
           </div>
         ))}
       </div>
@@ -119,15 +119,15 @@ export default function CaptureView({ onNewEntry, onEntryClick }) {
       ) : (
         <>
           <div className="mb-4 flex items-center justify-between">
-            <h4 className="text-sm font-semibold text-slate-800">Recent form captures</h4>
-            <button className="rounded-lg border border-slate-200 bg-white/60 backdrop-blur px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-white/80 transition">
+            <h4 className="text-sm font-semibold text-slate-800 dark:text-slate-100">Recent form captures</h4>
+            <button className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white/60 dark:bg-slate-800/60 backdrop-blur px-3 py-1.5 text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-white/80 dark:hover:bg-slate-700/80 transition">
               View all
             </button>
           </div>
           <div className="glass-card overflow-hidden rounded-2xl">
             <div className="overflow-x-auto">
               <table className="w-full min-w-[600px]">
-                <thead className="bg-white/30 text-[11px] font-semibold uppercase text-slate-500">
+                <thead className="bg-white/30 dark:bg-slate-800/30 text-[11px] font-semibold uppercase text-slate-500 dark:text-slate-400">
                   <tr>
                     <th className="px-4 py-3 text-left">Date</th>
                     <th className="px-4 py-3 text-left">Indicator</th>
@@ -141,14 +141,14 @@ export default function CaptureView({ onNewEntry, onEntryClick }) {
                   {filteredEntries().map((entry) => (
                     <tr
                       key={entry.id}
-                      className="border-t border-white/20 hover:bg-white/40 transition cursor-pointer"
+                      className="border-t border-white/20 dark:border-slate-700/30 hover:bg-white/40 dark:hover:bg-slate-700/40 transition cursor-pointer"
                       onClick={() => onEntryClick(entry)}
                     >
-                      <td className="px-4 py-3 text-sm text-slate-600">{entry.date}</td>
-                      <td className="px-4 py-3 text-sm font-medium text-slate-800">{entry.indicator}</td>
-                      <td className="px-4 py-3 text-sm text-slate-700">{entry.addedBy}</td>
-                      <td className="px-4 py-3 text-sm text-slate-500">{entry.role}</td>
-                      <td className="px-4 py-3 text-sm text-slate-500">{entry.location}</td>
+                      <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-300">{entry.date}</td>
+                      <td className="px-4 py-3 text-sm font-medium text-slate-800 dark:text-slate-100">{entry.indicator}</td>
+                      <td className="px-4 py-3 text-sm text-slate-700 dark:text-slate-200">{entry.addedBy}</td>
+                      <td className="px-4 py-3 text-sm text-slate-500 dark:text-slate-400">{entry.role}</td>
+                      <td className="px-4 py-3 text-sm text-slate-500 dark:text-slate-400">{entry.location}</td>
                       <td className="px-4 py-3">
                         <StatusBadge status={entry.status} />
                       </td>
@@ -156,7 +156,7 @@ export default function CaptureView({ onNewEntry, onEntryClick }) {
                   ))}
                   {filteredEntries().length === 0 && (
                     <tr>
-                      <td colSpan={6} className="px-4 py-8 text-center text-sm text-slate-400">
+                      <td colSpan={6} className="px-4 py-8 text-center text-sm text-slate-400 dark:text-slate-500">
                         No entries found.
                       </td>
                     </tr>
