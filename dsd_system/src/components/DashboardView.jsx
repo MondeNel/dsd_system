@@ -90,7 +90,7 @@ export default function DashboardView({ onEntryClick, onQuickFilter, onChartFilt
 
   return (
     <div className="space-y-6">
-      {/* Summary cards */}
+      {/* Summary cards – now clickable */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div onClick={() => onQuickFilter('all')} className="cursor-pointer">
           <SummaryCard icon={FileText} label="Total Entries" value={total} sub="All time" color="indigo" />
@@ -110,7 +110,7 @@ export default function DashboardView({ onEntryClick, onQuickFilter, onChartFilt
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Bar chart */}
         <div className="glass-card rounded-2xl p-4 sm:p-6">
-          <h3 className="mb-4 text-sm font-semibold text-slate-700">Forms captured per month</h3>
+          <h3 className="mb-4 text-sm font-semibold text-slate-700 dark:text-slate-200">Forms captured per month</h3>
           <ResponsiveContainer width="100%" height={250}>
             <BarChart data={barData}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
@@ -133,7 +133,7 @@ export default function DashboardView({ onEntryClick, onQuickFilter, onChartFilt
 
         {/* Pie chart */}
         <div className="glass-card rounded-2xl p-4 sm:p-6">
-          <h3 className="mb-4 text-sm font-semibold text-slate-700">Status breakdown</h3>
+          <h3 className="mb-4 text-sm font-semibold text-slate-700 dark:text-slate-200">Status breakdown</h3>
           <ResponsiveContainer width="100%" height={250}>
             <PieChart>
               <Pie
@@ -158,22 +158,26 @@ export default function DashboardView({ onEntryClick, onQuickFilter, onChartFilt
         </div>
       </div>
 
-      {/* Recent activity */}
+      {/* Recent activity – rows already clickable */}
       <div className="glass-card overflow-hidden rounded-2xl">
-        <div className="px-4 sm:px-6 py-4 border-b border-white/20">
-          <h3 className="text-sm font-semibold text-slate-800">
+        <div className="px-4 sm:px-6 py-4 border-b border-white/20 dark:border-slate-700/30">
+          <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-100">
             Recent activity
-            {role === 'supervisor' && <span className="ml-2 text-[11px] font-normal text-slate-400">All locations</span>}
+            {role === 'supervisor' && (
+              <span className="ml-2 text-[11px] font-normal text-slate-400 dark:text-slate-500">All locations</span>
+            )}
           </h3>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[600px]">
-            <thead className="bg-white/30 text-[11px] font-semibold uppercase text-slate-500">
+            <thead className="bg-white/30 dark:bg-slate-800/30 text-[11px] font-semibold uppercase text-slate-500 dark:text-slate-400">
               <tr>
                 <th className="px-4 sm:px-6 py-3 text-left">Date</th>
                 <th className="px-4 sm:px-6 py-3 text-left">Indicator</th>
                 <th className="px-4 sm:px-6 py-3 text-left">Added by</th>
-                {role === 'supervisor' && <th className="px-4 sm:px-6 py-3 text-left">Location</th>}
+                {role === 'supervisor' && (
+                  <th className="px-4 sm:px-6 py-3 text-left">Location</th>
+                )}
                 <th className="px-4 sm:px-6 py-3 text-left">Status</th>
               </tr>
             </thead>
@@ -181,19 +185,25 @@ export default function DashboardView({ onEntryClick, onQuickFilter, onChartFilt
               {recent.map((entry) => (
                 <tr
                   key={entry.id}
-                  className="border-t border-white/20 hover:bg-white/40 transition cursor-pointer"
+                  className="border-t border-white/20 dark:border-slate-700/30 hover:bg-white/40 dark:hover:bg-slate-700/40 transition cursor-pointer"
                   onClick={() => onEntryClick(entry)}
                 >
-                  <td className="px-4 sm:px-6 py-3 text-sm text-slate-600">{entry.date}</td>
-                  <td className="px-4 sm:px-6 py-3 text-sm font-medium text-slate-800">{entry.indicator}</td>
-                  <td className="px-4 sm:px-6 py-3 text-sm text-slate-700">{entry.addedBy}</td>
-                  {role === 'supervisor' && <td className="px-4 sm:px-6 py-3 text-sm text-slate-500">{entry.location}</td>}
-                  <td className="px-4 sm:px-6 py-3"><StatusBadge status={entry.status} /></td>
+                  <td className="px-4 sm:px-6 py-3 text-sm text-slate-600 dark:text-slate-300">{entry.date}</td>
+                  <td className="px-4 sm:px-6 py-3 text-sm font-medium text-slate-800 dark:text-slate-100">{entry.indicator}</td>
+                  <td className="px-4 sm:px-6 py-3 text-sm text-slate-700 dark:text-slate-200">{entry.addedBy}</td>
+                  {role === 'supervisor' && (
+                    <td className="px-4 sm:px-6 py-3 text-sm text-slate-500 dark:text-slate-400">{entry.location}</td>
+                  )}
+                  <td className="px-4 sm:px-6 py-3">
+                    <StatusBadge status={entry.status} />
+                  </td>
                 </tr>
               ))}
               {recent.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-6 py-8 text-center text-sm text-slate-400">No entries yet.</td>
+                  <td colSpan={5} className="px-6 py-8 text-center text-sm text-slate-400 dark:text-slate-500">
+                    No entries yet.
+                  </td>
                 </tr>
               )}
             </tbody>
@@ -214,13 +224,13 @@ function SummaryCard({ icon: Icon, label, value, sub, color }) {
   return (
     <div className="glass-card rounded-2xl p-4 sm:p-5 transition-all hover:shadow-xl hover:-translate-y-0.5">
       <div className="flex items-start justify-between">
-        <p className="text-sm font-medium text-slate-500">{label}</p>
+        <p className="text-sm font-medium text-slate-500 dark:text-slate-400">{label}</p>
         <div className={`rounded-lg bg-gradient-to-br ${gradients[color]} p-2`}>
           <Icon size={18} className="text-white" />
         </div>
       </div>
-      <p className="mt-3 text-2xl sm:text-3xl font-bold text-slate-800">{value}</p>
-      <p className="mt-1 text-xs text-slate-400">{sub}</p>
+      <p className="mt-3 text-2xl sm:text-3xl font-bold text-slate-800 dark:text-slate-100">{value}</p>
+      <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">{sub}</p>
     </div>
   );
 }
