@@ -9,10 +9,10 @@ import ReportsView from './components/ReportsView';
 import ChatAssistant from './components/ChatAssistant';
 import CommentsScreen from './components/CommentsScreen';
 import ConfirmModal from './components/ConfirmModal';
-import { DataProvider, useData } from './context/DataContext';   // import useData
+import { DataProvider, useData } from './context/DataContext';
 import { SCREEN_TITLES } from './constants/index';
 
-function AppInner() {   // new wrapper to access context
+function AppInner() {
   const [screen, setScreen] = useState('dashboard');
   const [editingEntry, setEditingEntry] = useState(null);
   const [formDirty, setFormDirty] = useState(false);
@@ -20,7 +20,7 @@ function AppInner() {   // new wrapper to access context
   const [pendingNav, setPendingNav] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  const { setFilter, clearFilter } = useData();   // get filter functions from context
+  const { setFilter, clearFilter } = useData();
 
   const toggleSidebar = () => setIsSidebarOpen(prev => !prev);
   const closeSidebar = () => setIsSidebarOpen(false);
@@ -57,11 +57,20 @@ function AppInner() {   // new wrapper to access context
     setFormDirty(false);
   };
 
-  // Quick filter from dashboard cards
+  // Quick filter from dashboard cards (status)
   const handleQuickFilter = (status) => {
-    clearFilter();                         // remove any previous filters
+    clearFilter();
     if (status && status !== 'all') {
-      setFilter(prev => ({ ...prev, status }));   // set only status filter
+      setFilter(prev => ({ ...prev, status }));
+    }
+    setScreen('capture');
+  };
+
+  // Chart filter: accepts any filter fields (e.g., dateFrom, dateTo, status)
+  const handleChartFilter = (filterData) => {
+    clearFilter();
+    if (filterData) {
+      setFilter(prev => ({ ...prev, ...filterData }));
     }
     setScreen('capture');
   };
@@ -100,6 +109,7 @@ function AppInner() {   // new wrapper to access context
             <DashboardView
               onEntryClick={handleEntryClick}
               onQuickFilter={handleQuickFilter}
+              onChartFilter={handleChartFilter}   // new
             />
           )}
           {screen === 'reports' && <ReportsView />}
@@ -118,7 +128,6 @@ function AppInner() {   // new wrapper to access context
   );
 }
 
-// Wrap with DataProvider so context is available
 export default function App() {
   return (
     <DataProvider>

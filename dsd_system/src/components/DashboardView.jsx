@@ -13,7 +13,17 @@ import { CardSkeleton, ChartSkeleton, TableSkeleton } from './Skeletons';
 const CHART_COLORS = ['#6366f1', '#8b5cf6', '#a78bfa', '#c4b5fd'];
 const PIE_COLORS = ['#10b981', '#f59e0b', '#6366f1'];
 
-export default function DashboardView({ onEntryClick, onQuickFilter }) {
+// Helper: given "2026-04" return { dateFrom: "2026-04-01", dateTo: "2026-04-30" }
+const getMonthRange = (monthStr) => {
+  const [year, month] = monthStr.split('-');
+  const lastDay = new Date(parseInt(year), parseInt(month), 0).getDate().toString().padStart(2, '0');
+  return {
+    dateFrom: `${year}-${month}-01`,
+    dateTo: `${year}-${month}-${lastDay}`,
+  };
+};
+
+export default function DashboardView({ onEntryClick, onQuickFilter, onChartFilter }) {
   const { entries, role } = useData();
   const [loading, setLoading] = useState(true);
 
@@ -58,9 +68,29 @@ export default function DashboardView({ onEntryClick, onQuickFilter }) {
     { name: 'In Progress', value: inProgress },
   ].filter((d) => d.value > 0);
 
+  // Click handlers for charts
+  const handleBarClick = (data) => {
+    if (data && data.name) {
+      const range = getMonthRange(data.name);
+      onChartFilter(range);
+    }
+  };
+
+  const handlePieClick = (data) => {
+    if (data && data.name) {
+      const statusMap = {
+        'Captured': 'captured',
+        'Pending': 'pending',
+        'In Progress': 'inprogress',
+      };
+      const status = statusMap[data.name] || data.name.toLowerCase();
+      onChartFilter({ status });
+    }
+  };
+
   return (
     <div className="space-y-6">
-      {/* Summary cards – now clickable */}
+      {/* Summary cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div onClick={() => onQuickFilter('all')} className="cursor-pointer">
           <SummaryCard icon={FileText} label="Total Entries" value={total} sub="All time" color="indigo" />
@@ -78,6 +108,7 @@ export default function DashboardView({ onEntryClick, onQuickFilter }) {
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Bar chart */}
         <div className="glass-card rounded-2xl p-4 sm:p-6">
           <h3 className="mb-4 text-sm font-semibold text-slate-700">Forms captured per month</h3>
           <ResponsiveContainer width="100%" height={250}>
@@ -86,7 +117,12 @@ export default function DashboardView({ onEntryClick, onQuickFilter }) {
               <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#64748b' }} />
               <YAxis allowDecimals={false} tick={{ fontSize: 12, fill: '#64748b' }} />
               <Tooltip cursor={{ fill: '#f1f5f9' }} />
-              <Bar dataKey="entries" radius={[6, 6, 0, 0]}>
+              <Bar
+                dataKey="entries"
+                radius={[6, 6, 0, 0]}
+                cursor="pointer"
+                onClick={handleBarClick}
+              >
                 {barData.map((_, index) => (
                   <Cell key={index} fill={CHART_COLORS[index % CHART_COLORS.length]} />
                 ))}
@@ -95,6 +131,7 @@ export default function DashboardView({ onEntryClick, onQuickFilter }) {
           </ResponsiveContainer>
         </div>
 
+        {/* Pie chart */}
         <div className="glass-card rounded-2xl p-4 sm:p-6">
           <h3 className="mb-4 text-sm font-semibold text-slate-700">Status breakdown</h3>
           <ResponsiveContainer width="100%" height={250}>
@@ -108,6 +145,8 @@ export default function DashboardView({ onEntryClick, onQuickFilter }) {
                 paddingAngle={5}
                 dataKey="value"
                 label={({ name, percent }) => `${name} ${Math.round(percent * 100)}%`}
+                onClick={handlePieClick}
+                cursor="pointer"
               >
                 {statusData.map((_, index) => (
                   <Cell key={index} fill={PIE_COLORS[index % PIE_COLORS.length]} />
@@ -119,7 +158,7 @@ export default function DashboardView({ onEntryClick, onQuickFilter }) {
         </div>
       </div>
 
-      {/* Recent activity – rows already clickable */}
+      {/* Recent activity */}
       <div className="glass-card overflow-hidden rounded-2xl">
         <div className="px-4 sm:px-6 py-4 border-b border-white/20">
           <h3 className="text-sm font-semibold text-slate-800">
