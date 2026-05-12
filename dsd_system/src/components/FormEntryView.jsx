@@ -23,13 +23,11 @@ export default function FormEntryView({ entry, onBack, onDirty, prefillData, sta
   const [errors, setErrors] = useState({});
   const [submitted, setSubmitted] = useState(false);
 
-  // Single step declaration – uses startStep, entry, or defaults
   const [step, setStep] = useState(() => {
-    if (startStep) return startStep;        // explicit start step from inbox
-    if (entry) return 2;                    // editing existing entry → step 2
-    return 1;                               // new entry → step 1
+    if (startStep) return startStep;
+    if (entry) return 2;
+    return 1;
   });
-
 
   const [form, setForm] = useState(() => {
     const defaultForm = {
@@ -183,14 +181,14 @@ export default function FormEntryView({ entry, onBack, onDirty, prefillData, sta
   if (submitted) {
     return (
       <div className="mx-auto flex max-w-md flex-col items-center py-20 text-center">
-        <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-500 shadow-lg shadow-emerald-500/25">
+        <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-500 shadow-[0_0_25px_rgba(16,185,129,0.3)]">
           <CheckCircle size={34} className="text-white" />
         </div>
-        <h3 className="mb-2 text-lg font-bold text-slate-800">Form submitted</h3>
-        <p className="mb-8 text-sm text-slate-500">Your entry has been captured successfully.</p>
+        <h3 className="mb-2 text-lg font-bold text-slate-100">Form submitted</h3>
+        <p className="mb-8 text-sm text-slate-400">Your entry has been captured successfully.</p>
         <button
           onClick={onBack}
-          className="rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-6 py-2.5 text-sm font-medium text-white shadow-lg shadow-indigo-500/25 hover:from-indigo-700 hover:to-violet-700 transition-all"
+          className="rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 px-6 py-2.5 text-sm font-semibold uppercase tracking-wider text-white shadow-[0_0_18px_rgba(16,185,129,0.25)] hover:shadow-[0_0_25px_rgba(16,185,129,0.35)] transition-all"
         >
           Back to Form Capture
         </button>
@@ -200,27 +198,28 @@ export default function FormEntryView({ entry, onBack, onDirty, prefillData, sta
 
   return (
     <div className="mx-auto max-w-3xl">
+      {/* Close button */}
       <div className="flex justify-end mb-2">
         <button
           onClick={onBack}
-          className="p-2 rounded-xl hover:bg-white/50 text-slate-400 hover:text-slate-600 transition"
+          className="p-2 rounded-xl text-slate-500 hover:text-slate-300 hover:bg-slate-800/60 transition"
           title="Close form"
         >
           <X size={18} />
         </button>
       </div>
 
-      {/* Progress */}
-      <div className="glass-card rounded-2xl p-4 sm:p-5 mb-6">
+      {/* Progress bar */}
+      <div className="bg-slate-900/80 backdrop-blur-sm border border-slate-700/20 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.3)] p-4 sm:p-5 mb-6">
         <div className="mb-3 flex items-center justify-between">
-          <p className="text-xs font-medium text-slate-500">
+          <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
             Step {step} of 3 — {STEP_LABELS[step - 1]}
           </p>
-          <p className="text-xs text-slate-400">All changes saved automatically</p>
+          <p className="text-xs text-slate-600">All changes saved automatically</p>
         </div>
-        <div className="h-2 w-full overflow-hidden rounded-full bg-white/50">
+        <div className="h-2 w-full overflow-hidden rounded-full bg-slate-700/50">
           <div
-            className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-violet-500 transition-all duration-500"
+            className="h-full rounded-full bg-gradient-to-r from-emerald-600 to-teal-500 shadow-[0_0_10px_rgba(16,185,129,0.5)] transition-all duration-500"
             style={{ width: progressWidth }}
           />
         </div>
@@ -228,8 +227,12 @@ export default function FormEntryView({ entry, onBack, onDirty, prefillData, sta
           {STEP_LABELS.map((label, i) => (
             <span
               key={label}
-              className={`text-[11px] font-medium transition-colors ${
-                i + 1 === step ? 'text-indigo-600' : i + 1 < step ? 'text-slate-400' : 'text-slate-300'
+              className={`text-[11px] font-medium uppercase tracking-wider transition-colors ${
+                i + 1 === step
+                  ? 'text-emerald-400'
+                  : i + 1 < step
+                  ? 'text-slate-500'
+                  : 'text-slate-700'
               }`}
             >
               {label}
@@ -238,31 +241,30 @@ export default function FormEntryView({ entry, onBack, onDirty, prefillData, sta
         </div>
       </div>
 
-      {/* Step 1 */}
+      {/* Step 1: Service details */}
       {step === 1 && (
-        <div className="glass-card rounded-2xl p-4 sm:p-6">
-          <h3 className="mb-5 flex items-center gap-2 text-sm font-semibold text-slate-800">
-            <div className="rounded-lg bg-gradient-to-br from-indigo-500 to-blue-500 p-1.5">
+        <div className="bg-slate-900/80 backdrop-blur-sm border border-slate-700/20 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.3)] p-4 sm:p-6">
+          <h3 className="mb-5 flex items-center gap-2 text-sm font-bold text-slate-200 uppercase tracking-wider">
+            <div className="rounded-lg bg-gradient-to-br from-emerald-600 to-teal-500 p-1.5 shadow-[0_0_10px_rgba(16,185,129,0.3)]">
               <Building size={16} className="text-white" />
             </div>
             Service details
           </h3>
-          {/* Stack fields on mobile */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <label className="text-xs font-medium text-slate-600">
+            <label className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
               Service point
               <select
-                className="mt-1 w-full rounded-xl border border-slate-200 bg-white/70 backdrop-blur px-3 py-2.5 text-sm focus:border-indigo-400 focus:outline-none focus:ring-4 focus:ring-indigo-400/20"
+                className="mt-1 w-full rounded-xl border border-slate-700/50 bg-slate-800/70 px-3 py-2.5 text-sm text-slate-200 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
                 value={form.servicePoint}
                 onChange={(e) => update('servicePoint', e.target.value)}
               >
                 <option>Prieska Siya-Themba Service Point</option>
               </select>
             </label>
-            <label className="text-xs font-medium text-slate-600">
+            <label className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
               Reporting month
               <select
-                className="mt-1 w-full rounded-xl border border-slate-200 bg-white/70 backdrop-blur px-3 py-2.5 text-sm focus:border-indigo-400 focus:outline-none focus:ring-4 focus:ring-indigo-400/20"
+                className="mt-1 w-full rounded-xl border border-slate-700/50 bg-slate-800/70 px-3 py-2.5 text-sm text-slate-200 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
                 value={form.reportingMonth}
                 onChange={(e) => update('reportingMonth', e.target.value)}
               >
@@ -272,14 +274,13 @@ export default function FormEntryView({ entry, onBack, onDirty, prefillData, sta
                 ))}
               </select>
             </label>
-            {/* Full width on all screens */}
-            <label className="col-span-1 sm:col-span-2 text-xs font-medium text-slate-600">
+            <label className="col-span-1 sm:col-span-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
               Indicator
               <select
-                className={`mt-1 w-full rounded-xl border bg-white/70 backdrop-blur px-3 py-2.5 text-sm focus:outline-none focus:ring-4 ${
+                className={`mt-1 w-full rounded-xl border bg-slate-800/70 px-3 py-2.5 text-sm text-slate-200 focus:outline-none focus:ring-2 ${
                   errors.indicator
-                    ? 'border-red-300 focus:border-red-400 focus:ring-red-400/20'
-                    : 'border-slate-200 focus:border-indigo-400 focus:ring-indigo-400/20'
+                    ? 'border-red-500/50 focus:border-red-400 focus:ring-red-500/20'
+                    : 'border-slate-700/50 focus:border-emerald-500 focus:ring-emerald-500/20'
                 }`}
                 value={form.indicator}
                 onChange={(e) => update('indicator', e.target.value)}
@@ -290,7 +291,7 @@ export default function FormEntryView({ entry, onBack, onDirty, prefillData, sta
                 ))}
               </select>
               {errors.indicator && (
-                <p className="mt-1 flex items-center gap-1 text-xs text-red-500">
+                <p className="mt-1 flex items-center gap-1 text-xs text-red-400">
                   <AlertCircle size={12} /> {errors.indicator}
                 </p>
               )}
@@ -299,7 +300,7 @@ export default function FormEntryView({ entry, onBack, onDirty, prefillData, sta
           <div className="mt-6 flex justify-end">
             <button
               onClick={() => { if (validateStep1()) setStep(2); }}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-5 py-2.5 text-sm font-medium text-white shadow-lg shadow-indigo-500/25 hover:from-indigo-700 hover:to-violet-700 transition-all"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 px-5 py-2.5 text-sm font-semibold uppercase tracking-wider text-white shadow-[0_0_18px_rgba(16,185,129,0.25)] hover:shadow-[0_0_25px_rgba(16,185,129,0.35)] transition-all"
             >
               Next <ArrowRight size={14} />
             </button>
@@ -307,13 +308,13 @@ export default function FormEntryView({ entry, onBack, onDirty, prefillData, sta
         </div>
       )}
 
-      {/* Step 2 */}
+      {/* Step 2: Participant breakdown */}
       {step === 2 && (
         <>
-          {/* Gender — stack on mobile */}
-          <div className="glass-card rounded-2xl p-4 sm:p-6 mb-4">
-            <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold text-slate-800">
-              <div className="rounded-lg bg-gradient-to-br from-violet-500 to-purple-500 p-1.5">
+          {/* Gender */}
+          <div className="bg-slate-900/80 backdrop-blur-sm border border-slate-700/20 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.3)] p-4 sm:p-6 mb-4">
+            <h3 className="mb-4 flex items-center gap-2 text-sm font-bold text-slate-200 uppercase tracking-wider">
+              <div className="rounded-lg bg-gradient-to-br from-indigo-500 to-purple-500 p-1.5 shadow-[0_0_10px_rgba(99,102,241,0.3)]">
                 <Users size={16} className="text-white" />
               </div>
               Gender breakdown
@@ -323,7 +324,7 @@ export default function FormEntryView({ entry, onBack, onDirty, prefillData, sta
                 ['Number of males', 'male'],
                 ['Number of females', 'female'],
               ].map(([label, key]) => (
-                <label key={key} className="text-xs font-medium text-slate-600">
+                <label key={key} className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                   {label}
                   <div className="mt-1">
                     <StepperInput
@@ -332,7 +333,7 @@ export default function FormEntryView({ entry, onBack, onDirty, prefillData, sta
                     />
                   </div>
                   {errors[key] && (
-                    <p className="mt-1 flex items-center gap-1 text-xs text-red-500">
+                    <p className="mt-1 flex items-center gap-1 text-xs text-red-400">
                       <AlertCircle size={12} /> {errors[key]}
                     </p>
                   )}
@@ -340,16 +341,16 @@ export default function FormEntryView({ entry, onBack, onDirty, prefillData, sta
               ))}
             </div>
             {totalParticipants > 0 && (
-              <p className="mt-4 text-xs font-medium text-slate-500">
-                Total participants: <span className="text-slate-700 font-semibold">{totalParticipants}</span>
+              <p className="mt-4 text-xs font-medium text-slate-500 uppercase tracking-wider">
+                Total participants: <span className="text-slate-200 font-bold">{totalParticipants}</span>
               </p>
             )}
           </div>
 
-          {/* Age groups — 2 cols mobile, 4 on sm+ */}
-          <div className="glass-card rounded-2xl p-4 sm:p-6 mb-4">
-            <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold text-slate-800">
-              <div className="rounded-lg bg-gradient-to-br from-amber-500 to-orange-500 p-1.5">
+          {/* Age groups */}
+          <div className="bg-slate-900/80 backdrop-blur-sm border border-slate-700/20 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.3)] p-4 sm:p-6 mb-4">
+            <h3 className="mb-4 flex items-center gap-2 text-sm font-bold text-slate-200 uppercase tracking-wider">
+              <div className="rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 p-1.5 shadow-[0_0_10px_rgba(251,191,36,0.3)]">
                 <PieChart size={16} className="text-white" />
               </div>
               Age groups
@@ -361,8 +362,8 @@ export default function FormEntryView({ entry, onBack, onDirty, prefillData, sta
                 ['36 – 59 yrs', 'age36_59'],
                 ['60+ yrs', 'age60plus'],
               ].map(([label, key]) => (
-                <div key={key} className="bg-white/40 rounded-xl border border-white/30 p-3 text-center">
-                  <p className="mb-2 text-[11px] font-medium text-slate-500">{label}</p>
+                <div key={key} className="bg-slate-800/50 rounded-xl border border-slate-700/30 p-3 text-center">
+                  <p className="mb-2 text-[11px] font-medium text-slate-400">{label}</p>
                   <StepperInput
                     value={parseInt(form[key], 10) || 0}
                     onChange={(newVal) => update(key, newVal)}
@@ -371,30 +372,30 @@ export default function FormEntryView({ entry, onBack, onDirty, prefillData, sta
               ))}
             </div>
             <div className="mt-4 flex items-center justify-between">
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-500 uppercase tracking-wider">
                 Age total:{' '}
-                <span className={`font-semibold ${ageTotal === totalParticipants ? 'text-emerald-600' : 'text-red-500'}`}>
+                <span className={`font-bold ${ageTotal === totalParticipants ? 'text-emerald-400' : 'text-red-400'}`}>
                   {ageTotal}
                 </span>{' '}
-                / expected: <span className="font-semibold text-slate-700">{totalParticipants}</span>
+                / expected: <span className="font-bold text-slate-300">{totalParticipants}</span>
               </p>
               {ageTotal === totalParticipants && totalParticipants > 0 && (
-                <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-600">
+                <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-400 uppercase tracking-wider">
                   <CheckCircle size={12} /> Totals match
                 </span>
               )}
             </div>
             {errors.ageTotal && (
-              <p className="mt-2 flex items-center gap-1 text-xs text-red-500">
+              <p className="mt-2 flex items-center gap-1 text-xs text-red-400">
                 <AlertCircle size={12} /> {errors.ageTotal}
               </p>
             )}
           </div>
 
-          {/* Services — 1 col mobile, 2 on sm+ */}
-          <div className="glass-card rounded-2xl p-4 sm:p-6 mb-6">
-            <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold text-slate-800">
-              <div className="rounded-lg bg-gradient-to-br from-emerald-500 to-teal-500 p-1.5">
+          {/* Services */}
+          <div className="bg-slate-900/80 backdrop-blur-sm border border-slate-700/20 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.3)] p-4 sm:p-6 mb-6">
+            <h3 className="mb-4 flex items-center gap-2 text-sm font-bold text-slate-200 uppercase tracking-wider">
+              <div className="rounded-lg bg-gradient-to-br from-sky-500 to-blue-600 p-1.5 shadow-[0_0_10px_rgba(56,189,248,0.3)]">
                 <ListChecks size={16} className="text-white" />
               </div>
               Services rendered
@@ -409,11 +410,11 @@ export default function FormEntryView({ entry, onBack, onDirty, prefillData, sta
                     onClick={() => toggleService(svc)}
                     className={`flex cursor-pointer items-center justify-between rounded-xl border px-4 py-3 transition-all ${
                       selected
-                        ? 'border-indigo-300 bg-indigo-50/60 backdrop-blur shadow-sm'
-                        : 'border-slate-200 bg-white/40 backdrop-blur hover:border-slate-300 hover:bg-white/60'
+                        ? 'border-emerald-500/30 bg-emerald-500/10 shadow-[0_0_12px_rgba(16,185,129,0.15)]'
+                        : 'border-slate-700/30 bg-slate-800/40 hover:border-slate-600/50 hover:bg-slate-800/60'
                     }`}
                   >
-                    <span className={`text-sm font-medium ${selected ? 'text-indigo-700' : 'text-slate-700'}`}>
+                    <span className={`text-sm font-semibold uppercase tracking-wider ${selected ? 'text-emerald-400' : 'text-slate-400'}`}>
                       {svc}
                     </span>
                     <div onClick={(e) => e.stopPropagation()}>
@@ -430,7 +431,7 @@ export default function FormEntryView({ entry, onBack, onDirty, prefillData, sta
               })}
             </div>
             {errors.services && (
-              <p className="mt-3 flex items-center gap-1 text-xs text-red-500">
+              <p className="mt-3 flex items-center gap-1 text-xs text-red-400">
                 <AlertCircle size={12} /> {errors.services}
               </p>
             )}
@@ -439,13 +440,13 @@ export default function FormEntryView({ entry, onBack, onDirty, prefillData, sta
           <div className="flex items-center justify-between">
             <button
               onClick={() => { saveDraft(); setStep(1); }}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white/60 backdrop-blur px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-white/80 transition"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-700/40 bg-slate-800/50 px-4 py-2.5 text-sm font-semibold uppercase tracking-wider text-slate-400 hover:text-slate-200 hover:border-slate-600/50 transition"
             >
               <ArrowLeft size={14} /> Back
             </button>
             <button
               onClick={() => { if (validateStep2()) setStep(3); }}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-5 py-2.5 text-sm font-medium text-white shadow-lg shadow-indigo-500/25 hover:from-indigo-700 hover:to-violet-700 transition-all"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 px-5 py-2.5 text-sm font-semibold uppercase tracking-wider text-white shadow-[0_0_18px_rgba(16,185,129,0.25)] hover:shadow-[0_0_25px_rgba(16,185,129,0.35)] transition-all"
             >
               Next: Review & submit <ArrowRight size={14} />
             </button>
@@ -453,11 +454,11 @@ export default function FormEntryView({ entry, onBack, onDirty, prefillData, sta
         </>
       )}
 
-      {/* Step 3 */}
+      {/* Step 3: Review */}
       {step === 3 && (
-        <div className="glass-card rounded-2xl p-4 sm:p-6">
-          <h3 className="mb-5 text-sm font-semibold text-slate-800">Review your entry</h3>
-          <dl className="divide-y divide-slate-100 text-sm">
+        <div className="bg-slate-900/80 backdrop-blur-sm border border-slate-700/20 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.3)] p-4 sm:p-6">
+          <h3 className="mb-5 text-sm font-bold text-slate-200 uppercase tracking-wider">Review your entry</h3>
+          <dl className="divide-y divide-slate-800/50 text-sm">
             {[
               ['Service point', form.servicePoint],
               ['Reporting month', form.reportingMonth],
@@ -477,21 +478,21 @@ export default function FormEntryView({ entry, onBack, onDirty, prefillData, sta
               ],
             ].map(([label, value]) => (
               <div key={label} className="flex py-3">
-                <dt className="w-1/3 font-medium text-slate-500">{label}</dt>
-                <dd className="flex-1 font-medium text-slate-800">{value}</dd>
+                <dt className="w-1/3 font-semibold uppercase tracking-wider text-slate-500 text-xs">{label}</dt>
+                <dd className="flex-1 font-medium text-slate-200">{value}</dd>
               </div>
             ))}
           </dl>
           <div className="mt-6 flex justify-between">
             <button
               onClick={() => setStep(2)}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white/60 backdrop-blur px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-white/80 transition"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-700/40 bg-slate-800/50 px-4 py-2.5 text-sm font-semibold uppercase tracking-wider text-slate-400 hover:text-slate-200 hover:border-slate-600/50 transition"
             >
               <ArrowLeft size={14} /> Edit
             </button>
             <button
               onClick={handleSubmit}
-              className="rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 px-6 py-2.5 text-sm font-medium text-white shadow-lg shadow-emerald-500/25 hover:from-emerald-600 hover:to-teal-600 transition-all"
+              className="rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 px-6 py-2.5 text-sm font-semibold uppercase tracking-wider text-white shadow-[0_0_18px_rgba(16,185,129,0.25)] hover:shadow-[0_0_25px_rgba(16,185,129,0.35)] transition-all"
             >
               Submit form
             </button>
