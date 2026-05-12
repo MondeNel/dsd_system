@@ -77,7 +77,7 @@ export default function CaptureView({ onNewEntry, onEntryClick }) {
 
   return (
     <div>
-      {/* Tab bar — scrollable on mobile */}
+      {/* Tab bar */}
       <div className="mb-6 flex border-b border-white/20 dark:border-slate-700/30 overflow-x-auto -mx-1 px-1">
         {tabs.map(({ id, label }) => (
           <button
@@ -97,7 +97,7 @@ export default function CaptureView({ onNewEntry, onEntryClick }) {
         ))}
       </div>
 
-      {/* Stats grid — 2 cols mobile, 4 on sm+ */}
+      {/* Stats grid */}
       <div className="mb-6 grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
         {stats.map(({ label, value, sub, icon: Icon, color }) => (
           <div key={label} className="glass-card rounded-2xl p-3 sm:p-4 transition-all hover:shadow-lg hover:-translate-y-0.5">
@@ -149,16 +149,12 @@ export default function CaptureView({ onNewEntry, onEntryClick }) {
                       <td className="px-4 py-3 text-sm text-slate-700 dark:text-slate-200">{entry.addedBy}</td>
                       <td className="px-4 py-3 text-sm text-slate-500 dark:text-slate-400">{entry.role}</td>
                       <td className="px-4 py-3 text-sm text-slate-500 dark:text-slate-400">{entry.location}</td>
-                      <td className="px-4 py-3">
-                        <StatusBadge status={entry.status} />
-                      </td>
+                      <td className="px-4 py-3"><StatusBadge status={entry.status} /></td>
                     </tr>
                   ))}
                   {filteredEntries().length === 0 && (
                     <tr>
-                      <td colSpan={6} className="px-4 py-8 text-center text-sm text-slate-400 dark:text-slate-500">
-                        No entries found.
-                      </td>
+                      <td colSpan={6} className="px-4 py-8 text-center text-sm text-slate-400 dark:text-slate-500">No entries found.</td>
                     </tr>
                   )}
                 </tbody>
