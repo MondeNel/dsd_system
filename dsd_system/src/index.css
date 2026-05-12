@@ -7,43 +7,32 @@
 @layer base {
   body {
     font-family: 'Inter', sans-serif;
-    background: linear-gradient(135deg, #f0f4ff 0%, #e2e8f0 100%);
+    background: radial-gradient(circle at 30% 20%, #0f172a, #020617);
     min-height: 100vh;
-    transition: background 0.3s ease;
-  }
-  .dark body {
-    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    color: #e2e8f0;
   }
 }
 
-/* Glassmorphism card effect – light mode */
-.glass-card {
-  background: rgba(255, 255, 255, 0.6);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.04);
-}
-
-/* Glass card – dark mode */
+/* ── Global glass card – now always dark executive style ── */
+.glass-card,
 .dark .glass-card {
-  background: rgba(30, 41, 59, 0.7);
+  background: rgba(15, 23, 42, 0.8);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border-color: rgba(255, 255, 255, 0.1);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(148, 163, 184, 0.08);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
-/* Glass sidebar – always dark */
+/* ── Sidebar – always dark (unchanged) ── */
 .dark-glass {
-  background: #0f172a;                         /* solid slate‑900 */
-  background: rgba(15, 23, 42, 0.95);          /* fallback – nearly opaque */
+  background: #0f172a;
+  background: rgba(15, 23, 42, 0.95);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border-right: 1px solid rgba(148, 163, 184, 0.1);
 }
 
-/* Custom scrollbar – light mode */
+/* ── Scrollbars – dark theme ── */
 ::-webkit-scrollbar {
   width: 6px;
 }
@@ -51,11 +40,6 @@
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.3);
-  border-radius: 3px;
-}
-
-/* Custom scrollbar – dark mode */
-.dark ::-webkit-scrollbar-thumb {
   background: rgba(148, 163, 184, 0.15);
+  border-radius: 3px;
 }
