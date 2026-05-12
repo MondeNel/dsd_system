@@ -1,11 +1,11 @@
 import { useState, useMemo } from 'react';
 import { useData } from '../context/DataContext';
-import { Download, FileText } from 'lucide-react';
+import { Download } from 'lucide-react';
 
 export default function ReportsView() {
   const { entries } = useData();
 
-  // ---------- Aggregations ----------
+  // ---------- Aggregations (unchanged logic) ----------
   const indicatorSummary = useMemo(() => {
     const map = {};
     entries.forEach((e) => {
@@ -25,7 +25,7 @@ export default function ReportsView() {
   const monthlyTrend = useMemo(() => {
     const months = {};
     entries.forEach((e) => {
-      const month = e.date.substring(0, 7); // "2026-05"
+      const month = e.date.substring(0, 7);
       if (!months[month]) {
         months[month] = { month, total: 0, male: 0, female: 0, count: 0 };
       }
@@ -48,42 +48,26 @@ export default function ReportsView() {
     return totals;
   }, [entries]);
 
-  // ---------- CSV Export ----------
+  // ---------- CSV Export (unchanged) ----------
   const exportCSV = () => {
     const headers = [
-      'Indicator',
-      'Date',
-      'Status',
-      'Service Point',
-      'Male',
-      'Female',
-      '0-18',
-      '19-35',
-      '36-59',
-      '60+',
+      'Indicator', 'Date', 'Status', 'Service Point',
+      'Male', 'Female', '0-18', '19-35', '36-59', '60+',
     ].join(',');
 
-    const rows = entries.map(
-      (e) =>
-        [
-          `"${e.indicator}"`,
-          e.date,
-          e.status,
-          `"${e.location}"`,
-          e.genderMale || 0,
-          e.genderFemale || 0,
-          e.age0_18 || 0,
-          e.age19_35 || 0,
-          e.age36_59 || 0,
-          e.age60plus || 0,
-        ].join(',')
+    const rows = entries.map((e) =>
+      [
+        `"${e.indicator}"`, e.date, e.status, `"${e.location}"`,
+        e.genderMale || 0, e.genderFemale || 0,
+        e.age0_18 || 0, e.age19_35 || 0, e.age36_59 || 0, e.age60plus || 0,
+      ].join(',')
     );
     const csv = [headers, ...rows].join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `eme_report_${new Date().toISOString().slice(0,10)}.csv`;
+    a.download = `eme_report_${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -93,14 +77,14 @@ export default function ReportsView() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-medium text-gray-800">Reports</h3>
-          <p className="text-xs text-gray-500">
+          <h3 className="text-lg font-bold text-slate-200 uppercase tracking-wider">Reports</h3>
+          <p className="text-xs text-slate-500 mt-0.5">
             Aggregated data from {entries.length} entries
           </p>
         </div>
         <button
           onClick={exportCSV}
-          className="inline-flex items-center gap-2 rounded-md bg-emerald-700 px-4 py-2 text-sm text-white hover:bg-emerald-800"
+          className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-500 px-4 py-2 text-sm font-semibold uppercase tracking-wider text-white shadow-[0_0_18px_rgba(16,185,129,0.25)] hover:shadow-[0_0_25px_rgba(16,185,129,0.35)] transition-all"
         >
           <Download size={14} />
           Export CSV
@@ -108,13 +92,16 @@ export default function ReportsView() {
       </div>
 
       {/* Indicator Summary Table */}
-      <div className="rounded-lg border bg-white">
-        <div className="px-5 py-4 border-b">
-          <h4 className="text-sm font-medium text-gray-800">Indicator-wise Summary</h4>
+      <div className="bg-slate-900/80 backdrop-blur-sm border border-slate-700/20 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.3)] overflow-hidden">
+        <div className="px-5 py-4 border-b border-slate-800 flex items-center gap-2">
+          <div className="h-5 w-0.5 bg-gradient-to-b from-emerald-400 to-emerald-600 rounded-full" />
+          <h4 className="text-xs font-bold uppercase tracking-wider text-slate-200">
+            Indicator‑wise Summary
+          </h4>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50 text-[11px] font-medium uppercase tracking-wider text-gray-500">
+            <thead className="bg-slate-800/40 text-[10px] font-semibold uppercase text-slate-400 tracking-wide">
               <tr>
                 <th className="px-5 py-2.5 text-left">Indicator</th>
                 <th className="px-5 py-2.5 text-center">Total Forms</th>
@@ -125,21 +112,24 @@ export default function ReportsView() {
             </thead>
             <tbody>
               {indicatorSummary.map((row) => (
-                <tr key={row.indicator} className="border-t border-gray-100 hover:bg-gray-50">
-                  <td className="px-5 py-2.5 text-sm text-gray-800">{row.indicator}</td>
-                  <td className="px-5 py-2.5 text-center text-sm font-medium text-gray-700">{row.total}</td>
+                <tr
+                  key={row.indicator}
+                  className="border-t border-slate-800 hover:bg-slate-800/20 transition"
+                >
+                  <td className="px-5 py-2.5 text-sm font-medium text-slate-200">{row.indicator}</td>
+                  <td className="px-5 py-2.5 text-center text-sm font-bold text-emerald-400">{row.total}</td>
                   <td className="px-5 py-2.5 text-center">
-                    <span className="inline-block rounded-full bg-lime-100 px-2 py-0.5 text-[11px] font-medium text-lime-800">
+                    <span className="inline-block rounded-full bg-emerald-500/15 px-2.5 py-0.5 text-[11px] font-medium text-emerald-400">
                       {row.captured}
                     </span>
                   </td>
                   <td className="px-5 py-2.5 text-center">
-                    <span className="inline-block rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-medium text-amber-800">
+                    <span className="inline-block rounded-full bg-amber-500/15 px-2.5 py-0.5 text-[11px] font-medium text-amber-400">
                       {row.pending}
                     </span>
                   </td>
                   <td className="px-5 py-2.5 text-center">
-                    <span className="inline-block rounded-full bg-blue-100 px-2 py-0.5 text-[11px] font-medium text-blue-800">
+                    <span className="inline-block rounded-full bg-sky-500/15 px-2.5 py-0.5 text-[11px] font-medium text-sky-400">
                       {row.inprogress}
                     </span>
                   </td>
@@ -147,7 +137,7 @@ export default function ReportsView() {
               ))}
               {indicatorSummary.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-5 py-6 text-center text-sm text-gray-400">
+                  <td colSpan={5} className="px-5 py-10 text-center text-xs text-slate-600 italic">
                     No entries to display.
                   </td>
                 </tr>
@@ -158,13 +148,14 @@ export default function ReportsView() {
       </div>
 
       {/* Monthly Trend Table */}
-      <div className="rounded-lg border bg-white">
-        <div className="px-5 py-4 border-b">
-          <h4 className="text-sm font-medium text-gray-800">Monthly Trend</h4>
+      <div className="bg-slate-900/80 backdrop-blur-sm border border-slate-700/20 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.3)] overflow-hidden">
+        <div className="px-5 py-4 border-b border-slate-800 flex items-center gap-2">
+          <div className="h-5 w-0.5 bg-gradient-to-b from-indigo-400 to-purple-500 rounded-full" />
+          <h4 className="text-xs font-bold uppercase tracking-wider text-slate-200">Monthly Trend</h4>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50 text-[11px] font-medium uppercase tracking-wider text-gray-500">
+            <thead className="bg-slate-800/40 text-[10px] font-semibold uppercase text-slate-400 tracking-wide">
               <tr>
                 <th className="px-5 py-2.5 text-left">Month</th>
                 <th className="px-5 py-2.5 text-center">Total Forms</th>
@@ -175,17 +166,20 @@ export default function ReportsView() {
             </thead>
             <tbody>
               {monthlyTrend.map((row) => (
-                <tr key={row.month} className="border-t border-gray-100 hover:bg-gray-50">
-                  <td className="px-5 py-2.5 text-sm text-gray-800">{row.month}</td>
-                  <td className="px-5 py-2.5 text-center text-sm">{row.count}</td>
-                  <td className="px-5 py-2.5 text-center text-sm font-medium">{row.total}</td>
-                  <td className="px-5 py-2.5 text-center text-sm">{row.male}</td>
-                  <td className="px-5 py-2.5 text-center text-sm">{row.female}</td>
+                <tr
+                  key={row.month}
+                  className="border-t border-slate-800 hover:bg-slate-800/20 transition"
+                >
+                  <td className="px-5 py-2.5 text-sm font-mono text-slate-200">{row.month}</td>
+                  <td className="px-5 py-2.5 text-center text-sm font-bold text-indigo-400">{row.count}</td>
+                  <td className="px-5 py-2.5 text-center text-sm font-medium text-slate-200">{row.total}</td>
+                  <td className="px-5 py-2.5 text-center text-sm text-slate-400">{row.male}</td>
+                  <td className="px-5 py-2.5 text-center text-sm text-slate-400">{row.female}</td>
                 </tr>
               ))}
               {monthlyTrend.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-5 py-6 text-center text-sm text-gray-400">
+                  <td colSpan={5} className="px-5 py-10 text-center text-xs text-slate-600 italic">
                     No data available.
                   </td>
                 </tr>
@@ -196,18 +190,28 @@ export default function ReportsView() {
       </div>
 
       {/* Age Group Totals */}
-      <div className="rounded-lg border bg-white p-5">
-        <h4 className="mb-4 text-sm font-medium text-gray-800">Age Group Totals (All Entries)</h4>
-        <div className="grid grid-cols-4 gap-3 text-center">
+      <div className="bg-slate-900/80 backdrop-blur-sm border border-slate-700/20 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.3)] p-5">
+        <div className="flex items-center gap-2 mb-4">
+          <div className="h-5 w-0.5 bg-gradient-to-b from-amber-400 to-orange-500 rounded-full" />
+          <h4 className="text-xs font-bold uppercase tracking-wider text-slate-200">
+            Age Group Totals (All Entries)
+          </h4>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[
             ['0–18 yrs', ageTotals.age0_18],
             ['19–35 yrs', ageTotals.age19_35],
             ['36–59 yrs', ageTotals.age36_59],
             ['60+ yrs', ageTotals.age60plus],
           ].map(([label, value]) => (
-            <div key={label} className="rounded border bg-gray-50 p-4">
-              <p className="text-xs text-gray-500">{label}</p>
-              <p className="mt-1 text-2xl font-medium text-gray-800">{value}</p>
+            <div
+              key={label}
+              className="rounded-xl bg-slate-800/50 border border-slate-700/30 p-4 text-center"
+            >
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                {label}
+              </p>
+              <p className="mt-2 text-2xl font-bold text-white">{value}</p>
             </div>
           ))}
         </div>
