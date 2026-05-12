@@ -21,7 +21,6 @@ export default function Topbar({ pageTitle, breadcrumb, onNewEntry, onToggleSide
     <>
       <header className="glass-card sticky top-0 z-30 flex items-center justify-between border-b border-white/20 dark:border-slate-700/30 px-3 sm:px-6 py-3 gap-3">
         <div className="flex items-center gap-3 min-w-0">
-          {/* Hamburger for mobile */}
           <button
             onClick={onToggleSidebar}
             className="lg:hidden p-1.5 -ml-1 rounded-lg hover:bg-white/50 dark:hover:bg-slate-700/50 text-slate-600 dark:text-slate-300"
@@ -34,7 +33,6 @@ export default function Topbar({ pageTitle, breadcrumb, onNewEntry, onToggleSide
           </div>
         </div>
         <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-          {/* Dark mode toggle */}
           <button
             onClick={() => setDark(!dark)}
             className="p-2 rounded-lg hover:bg-white/10 dark:hover:bg-white/20 text-slate-500 dark:text-slate-300"
@@ -43,7 +41,6 @@ export default function Topbar({ pageTitle, breadcrumb, onNewEntry, onToggleSide
             {dark ? <Sun size={16} /> : <Moon size={16} />}
           </button>
 
-          {/* Role toggle */}
           <button
             onClick={toggleRole}
             className={`inline-flex items-center gap-1 sm:gap-1.5 rounded-lg border px-2.5 sm:px-3 py-1.5 text-xs font-medium transition-colors ${
@@ -57,7 +54,6 @@ export default function Topbar({ pageTitle, breadcrumb, onNewEntry, onToggleSide
             <span className="hidden sm:inline">{role === 'officer' ? 'Officer' : 'Supervisor'}</span>
           </button>
 
-          {/* Filter button */}
           <button
             onClick={() => setShowFilter(true)}
             className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 sm:px-3.5 py-1.5 text-sm text-slate-600 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600"
@@ -71,7 +67,6 @@ export default function Topbar({ pageTitle, breadcrumb, onNewEntry, onToggleSide
             )}
           </button>
 
-          {/* New Entry button (officer only) */}
           {role === 'officer' && (
             <button
               onClick={onNewEntry}
